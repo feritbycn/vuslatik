@@ -98,7 +98,7 @@
         if (!LN) return Promise.resolve(false);
         return LN.checkPermissions().then(function (r) { return r.display === 'granted' ? r : LN.requestPermissions(); }).then(function (r) {
             if (r.display !== 'granted') return false;
-            if (platform === 'android' && LN.createChannel) return LN.createChannel({ id: 'ik_bildirim_v2', name: 'İK bildirimleri', description: 'İzin, onay ve duyuru bildirimleri', importance: 5, visibility: 1, vibration: true }).catch(function () {}).then(function () { return true; });
+            if (platform === 'android' && LN.createChannel) return LN.createChannel({ id: 'ik_bildirim_v3', name: 'İK bildirimleri', description: 'İzin, onay ve duyuru bildirimleri', importance: 5, visibility: 1, vibration: true }).catch(function () {}).then(function () { return true; });
             return true;
         }).catch(function () { return false; });
     }
@@ -108,7 +108,7 @@
         if (id) depo('ik_yerel_son', String(id));
         yerelHazir().then(function (ok) {
             if (!ok) return;
-            LN.schedule({ notifications: [{ id: id || (Date.now() % 2147483000), title: duz(b.baslik) || 'İnsan Kaynakları', body: duz(b.mesaj), channelId: 'ik_bildirim_v2', smallIcon: 'ic_stat_ik', extra: { link: b.link || '' } }] }).catch(function () {});
+            LN.schedule({ notifications: [{ id: id || (Date.now() % 2147483000), title: duz(b.baslik) || 'İnsan Kaynakları', body: duz(b.mesaj), channelId: 'ik_bildirim_v3', smallIcon: 'ic_stat_ik', extra: { link: b.link || '' } }] }).catch(function () {});
         });
     }
     if (LN) {
@@ -140,7 +140,7 @@
         return FM.checkPermissions().then(function (r) { raporX('izin durumu: ' + r.receive + ' · ' + platform); return r.receive === 'granted' ? r : FM.requestPermissions(); }).then(function (r) {
             raporX('izin sonrası: ' + r.receive);
             if (r.receive !== 'granted') { if (!depo('ik_bildirim_uyari')) { depo('ik_bildirim_uyari', '1'); uyar('Bildirim izni verilmedi. Telefon Ayarları → Uygulamalar → Bilge360 İK → Bildirimler bölümünden açabilirsiniz.'); } return null; }
-            if (platform === 'android' && FM.createChannel) FM.createChannel({ id: 'ik_bildirim_v2', name: 'İK bildirimleri', description: 'İzin, onay ve duyuru bildirimleri', importance: 5, visibility: 1, vibration: true, sound: 'default' }).catch(function () {});
+            if (platform === 'android' && FM.createChannel) FM.createChannel({ id: 'ik_bildirim_v3', name: 'İK bildirimleri', description: 'İzin, onay ve duyuru bildirimleri', importance: 5, visibility: 1, vibration: true, sound: 'default' }).catch(function () {});
             return FM.getToken().then(function (t) { raporX('token alındı (' + String(t.token || '').length + ' karakter)'); kaydet(t.token); return t; });
         }).catch(function (e) { raporX('HATA: ' + ((e && e.message) || e)); uyar('Bildirim servisi başlatılamadı (Firebase yapılandırması eksik olabilir): ' + ((e && e.message) || e)); });
     }

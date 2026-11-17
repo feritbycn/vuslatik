@@ -85,12 +85,15 @@ public class MainActivity extends BridgeActivity {
         try {
             NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             if (nm == null) return;
-            NotificationChannel k = new NotificationChannel("ik_bildirim_v2", "İK bildirimleri", NotificationManager.IMPORTANCE_HIGH);
+            NotificationChannel k = new NotificationChannel("ik_bildirim_v3", "İK bildirimleri", NotificationManager.IMPORTANCE_HIGH);
             k.setSound(android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION),
                 new android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION).setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION).build());
             nm.deleteNotificationChannel("ik_bildirim");
+            nm.deleteNotificationChannel("ik_bildirim_v2");
             k.setDescription("İzin, onay ve duyuru bildirimleri");
             k.enableVibration(true);
+            k.setVibrationPattern(new long[]{0, 400, 200, 400});
+            k.setShowBadge(true);
             k.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
             nm.createNotificationChannel(k);
         } catch (Exception ignored) {}
