@@ -175,7 +175,7 @@ body.gc-tam .gc-sayfa > a.gc-geri { display: none !important; }
 body.gc-tam .vh-toast-yigin { top: max(14px, env(safe-area-inset-top)); bottom: auto; left: 16px; right: 16px; max-width: none; }
 
 /* Geçmiş kayıtlar açılır penceresi */
-#gcm-perde { position: fixed; inset: 0; z-index: 9999; background: rgba(5, 10, 30, .55); display: flex; align-items: flex-end; justify-content: center; padding: 0; animation: gcm-gir .18s ease-out; }
+#gcm-perde { position: fixed; inset: 0; z-index: 1000002; background: rgba(5, 10, 30, .55); display: flex; align-items: flex-end; justify-content: center; padding: 0; animation: gcm-gir .18s ease-out; }
 .gcm-sheet { width: 100%; max-width: 480px; max-height: 78vh; display: flex; flex-direction: column; background: #0f1b3d; color: #fff; border: 1px solid rgba(255,255,255,.16); border-bottom: 0; border-radius: 22px 22px 0 0; box-shadow: 0 -12px 40px rgba(0,0,0,.35); padding-bottom: env(safe-area-inset-bottom, 0); }
 .gcm-ust { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; font-size: 16px; }
 .gcm-kapat { width: 36px; height: 36px; border-radius: 11px; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.1); color: #fff; font-size: 16px; cursor: pointer; }
