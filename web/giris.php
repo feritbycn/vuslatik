@@ -71,7 +71,7 @@ $ver['intro'] = $a['giris_intro'] === '1' && !$bakim && stripos((string)($_SERVE
 <main class="g-sayfa">
     <section class="g-hero" aria-label="<?= $h($a['site_adi']) ?>">
         <div class="g-marka">
-            <?php if ($a['logo'] !== ''): ?><img class="g-logo-img" src="<?= $h($a['logo']) ?>" alt="<?= $h($a['site_adi']) ?>"><?php else: ?><span class="g-logo"><i class="fa-solid fa-people-group"></i></span><?php endif; ?>
+            <?php if ($a['logo'] !== ''): ?><img class="g-logo-img" src="<?= $h($a['logo']) ?>" alt="<?= $h($a['site_adi']) ?>" onerror="var s=document.createElement('span'),k=document.createElement('i');s.className='g-logo';k.className='fa-solid fa-people-group';s.appendChild(k);this.replaceWith(s)"><?php else: ?><span class="g-logo"><i class="fa-solid fa-people-group"></i></span><?php endif; ?>
             <b><?= $h($a['site_adi']) ?></b>
         </div>
         <h1 class="g-slogan"><?= $h($a['slogan']) ?></h1>
