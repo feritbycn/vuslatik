@@ -103,7 +103,7 @@ body.gct-kucuk .gct-ac { display: inline-flex; }
    29.09.2026 (2): HER ŞEY TEK EKRANA SIĞAR — kaydırma yok, site menüsü / sohbet / yan paneller gizli
    Sıra: üst bant → bugünkü çalışma → süre halkası (kalan boşluğa göre büyür/küçülür) → bilgi satırları → kaydırma düğmesi
    ========================================================================== */
-body.gc-tam > *:not(.gc-sayfa):not(.gc-arka):not(.gct-modal):not(.vh-toast-yigin):not(.vh-arka):not(.vuo-arka):not(#modern-alert-overlay):not(#vub-kap):not(script):not(style):not(link) { display: none !important; }
+body.gc-tam > *:not(.gc-sayfa):not(.gc-arka):not(.gct-modal):not(.vh-toast-yigin):not(.vh-arka):not(.vuo-arka):not(#modern-alert-overlay):not(#vub-kap):not(#gcm-perde):not(script):not(style):not(link) { display: none !important; }
 body.gc-tam .gc-sayfa { box-sizing: border-box; display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow-x: hidden; overflow-y: auto;
     padding: max(10px, env(safe-area-inset-top)) 16px max(12px, env(safe-area-inset-bottom)); }
 body.gc-tam #gc-icerik { flex: 1 1 auto; min-height: 0; width: 100%; display: flex; flex-direction: column; }
