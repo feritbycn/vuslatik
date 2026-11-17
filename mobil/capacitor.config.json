@@ -5,13 +5,30 @@
   "server": {
     "url": "https://bilge360.com/ik/giris_cikis.php",
     "cleartext": false,
-    "allowNavigation": ["bilge360.com", "*.bilge360.com"],
+    "allowNavigation": [
+      "bilge360.com",
+      "*.bilge360.com"
+    ],
     "errorPath": "hata.html"
   },
-  "android": { "allowMixedContent": false },
-  "ios": { "contentInset": "automatic", "limitsNavigationsToAppBoundDomains": false },
+  "android": {
+    "allowMixedContent": false
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "limitsNavigationsToAppBoundDomains": false
+  },
   "plugins": {
-    "SplashScreen": { "launchShowDuration": 800, "backgroundColor": "#4f46e5", "showSpinner": false },
-    "FirebaseMessaging": { "presentationOptions": ["badge"] }
-  }
+    "SplashScreen": {
+      "launchShowDuration": 800,
+      "backgroundColor": "#4f46e5",
+      "showSpinner": false
+    },
+    "FirebaseMessaging": {
+      "presentationOptions": [
+        "badge"
+      ]
+    }
+  },
+  "appendUserAgent": "Bilge360App"
 }

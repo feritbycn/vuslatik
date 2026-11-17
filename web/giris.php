@@ -37,7 +37,7 @@ $gtag = preg_match('/^(G|GT|UA|AW)-[A-Z0-9-]{4,20}$/i', $a['analitik_kod']) ? $a
 $bakim = $a['bakim_modu'] === '1';
 $v = function ($y) { $t = @filemtime(__DIR__ . '/' . $y); return $t ?: 1; };
 $ver = ['efekt' => $efekt, 'renk1' => $ana, 'renk2' => $ikinci, 'liste' => $kurum_liste, 'otomatik' => $otomatik && $onsec === '', 'kurumlar' => $kurumlar, 'onsec' => $onsec, 'don' => $don, 'csrf' => csrf_token(), 'bakim' => $bakim];
-$ver['intro'] = $a['giris_intro'] === '1' && !$bakim; $ver['ad'] = $a['site_adi']; $ver['logo'] = $a['logo']; $ver['slogan'] = $a['slogan'];
+$ver['intro'] = $a['giris_intro'] === '1' && !$bakim && stripos((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 'Bilge360App') === false; $ver['ad'] = $a['site_adi']; $ver['logo'] = $a['logo']; $ver['slogan'] = $a['slogan'];
 ?><!DOCTYPE html>
 <html lang="tr">
 <head>

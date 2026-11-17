@@ -665,6 +665,7 @@
         var h = cihazIpuclari();
         return {
             sahte_puan: sp ? sp.puan : 0, sahte_neden: sp ? sp.neden.join(',') : '', konum_ham: hamKonumJson(),
+            sahte_konum: window.__sahteKonum ? 1 : 0, uygulama: /Bilge360App/.test(navigator.userAgent) ? 1 : 0,
             tur: tur, pin: pin, cihaz: CIHAZ, nokta_id: (nk || {}).id || 0, kod: kod, webauthn: wa,
             enlem: k ? k.enlem : '', boylam: k ? k.boylam : '', dogruluk: k ? k.dogruluk : '', ts: Math.floor(Date.now() / 1000),
             konum_ornek: k ? k.ornek : 0, konum_yayilim: k ? k.yayilim : 0, konum_sure_ms: k ? k.sure_ms : 0,

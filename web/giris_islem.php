@@ -313,6 +313,11 @@ if ($islem === 'damga') {
     $supheli = []; $noktaId = null; $cevapNokta = ''; $cevapMesafe = null;
     $lat = is_numeric($_POST['enlem'] ?? null) ? (float)$_POST['enlem'] : null; $lon = is_numeric($_POST['boylam'] ?? null) ? (float)$_POST['boylam'] : null; $acc = is_numeric($_POST['dogruluk'] ?? null) ? (float)$_POST['dogruluk'] : null;
     if ($lat !== null) { $bilgi['enlem'] = round($lat, 6); $bilgi['boylam'] = round($lon, 6); $bilgi['dogruluk'] = $acc; }
+    if (!empty($_POST['sahte_konum'])) {
+        // Mobil uygulama telefonda sahte konum (mock location / konum benzetimi) algıladı: kayıt yapılmaz
+        $supheli[] = 'sahte_konum'; $bilgi['sahte_konum'] = 1;
+        gh('Sahte konum algılandı. Konum benzetme uygulamasını kapatıp tekrar deneyin; bu deneme kayıt altına alındı.', 403, ['sahte_konum' => true]);
+    }
     if ($konumGerekli) {
         if ($lat === null || $lon === null || abs($lat) > 90 || abs($lon) > 180) gh('Konum alınamadı. Konum iznini verip GPS\'in açık olduğundan emin olun.', 400, ['konum_yok' => true]);
         if ($acc === null || $acc > $A['max_dogruluk']) gh('Konum doğruluğu yetersiz (' . ($acc === null ? '?' : round($acc)) . ' m; en fazla ' . intval($A['max_dogruluk']) . ' m). Açık alanda GPS\'i açarak tekrar deneyin.', 400, ['konum_yok' => true]);

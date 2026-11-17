@@ -32,12 +32,54 @@
         try { var u = new URL(link, document.baseURI); if (u.origin === location.origin) location.href = u.href; } catch (e) {}
     }
     function uyar(m) { if (window.IKBildirim && window.IKBildirim.toast) { try { window.IKBildirim.toast({ id: 0, baslik: 'Bilge360 İK', mesaj: m }); return; } catch (e) {} } }
+    /* ---- Yerel (GPS) konum + SAHTE KONUM tespiti ----
+       Uygulamada konum, tarayıcının değil telefonun kendi GPS'inden alınır (KonumGuvenli eklentisi).
+       Android'de "sahte konum uygulaması" / iOS'ta konum benzetimi algılanırsa konum VERİLMEZ ve kayıt reddedilir. */
+    var KG = null;
+    try { KG = C.registerPlugin ? C.registerPlugin('KonumGuvenli') : (C.Plugins && C.Plugins.KonumGuvenli); } catch (e) {}
+    function sahteUyari() {
+        window.__sahteKonum = true;
+        try { window.dispatchEvent(new CustomEvent('sahtekonum')); } catch (e) {}
+        uyar('Sahte konum algılandı. Konum benzetme uygulamasını kapatın; giriş-çıkış kaydı yapılamaz.');
+    }
+    function pozisyon(d) { return { coords: { latitude: d.latitude, longitude: d.longitude, accuracy: d.accuracy, altitude: d.altitude == null ? null : d.altitude, altitudeAccuracy: null, speed: d.speed == null ? null : d.speed, heading: d.heading == null ? null : d.heading }, timestamp: d.zaman || Date.now() }; }
+    function hataKodu(e) { var k = String((e && e.code) || ''); return { code: k === 'IZIN' ? 1 : (k === 'KAPALI' || k === 'KONUM') ? 2 : 3, message: (e && e.message) || 'Konum alınamadı', PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 }; }
+    if (KG && navigator.geolocation) {
+        var izleme = {}, sayac = 0;
+        var yerel = {
+            getCurrentPosition: function (ok, err, opt) {
+                KG.izinIste().then(function () { return KG.konumAl({ timeout: (opt && opt.timeout) || 20000 }); }).then(function (d) {
+                    if (d.sahte) { sahteUyari(); if (err) err({ code: 1, message: 'Sahte konum algılandı', PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 }); return; }
+                    ok(pozisyon(d));
+                }).catch(function (e) { if (err) err(hataKodu(e)); });
+            },
+            watchPosition: function (ok, err) {
+                var no = ++sayac, kayit = { dinleyici: null, id: null, iptal: false };
+                izleme[no] = kayit;
+                KG.izinIste().then(function () {
+                    return KG.addListener('konum', function (d) {
+                        if (kayit.iptal) return;
+                        if (d.sahte) { sahteUyari(); if (err) err({ code: 1, message: 'Sahte konum algılandı', PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 }); return; }
+                        ok(pozisyon(d));
+                    });
+                }).then(function (h) { kayit.dinleyici = h; if (kayit.iptal) { h.remove(); return; } return KG.izleBasla(); })
+                  .then(function (r) { if (r) { kayit.id = r.id; if (kayit.iptal) KG.izleDur({ id: r.id }); } })
+                  .catch(function (e) { if (err) err(hataKodu(e)); });
+                return no;
+            },
+            clearWatch: function (no) {
+                var k = izleme[no]; if (!k) return; k.iptal = true; delete izleme[no];
+                if (k.dinleyici) k.dinleyici.remove();
+                if (Object.keys(izleme).length === 0) KG.izleDur({ id: k.id || '' }).catch(function () {});
+            }
+        };
+        try { navigator.geolocation.getCurrentPosition = yerel.getCurrentPosition; navigator.geolocation.watchPosition = yerel.watchPosition; navigator.geolocation.clearWatch = yerel.clearWatch; } catch (e) {}
+    }
     /* Konum izni: tarayıcıdaki gibi sorulur (Android/iOS işletim sistemi penceresi çıkar) */
     function konumIzni() {
+        if (KG) return KG.izinIste().catch(function () {});
         if (!navigator.geolocation) return Promise.resolve();
-        var sor = function () { return new Promise(function (ok) { navigator.geolocation.getCurrentPosition(function () { ok(); }, function () { ok(); }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 600000 }); }); };
-        if (navigator.permissions && navigator.permissions.query) return navigator.permissions.query({ name: 'geolocation' }).then(function (r) { return r.state === 'prompt' ? sor() : null; }).catch(sor);
-        return sor();
+        return new Promise(function (ok) { navigator.geolocation.getCurrentPosition(function () { ok(); }, function () { ok(); }, { timeout: 15000, maximumAge: 600000 }); });
     }
     function bildirimIzni() {
         return FM.checkPermissions().then(function (r) { return r.receive === 'granted' ? r : FM.requestPermissions(); }).then(function (r) {
