@@ -3,7 +3,7 @@
   "appName": "Bilge360 İK",
   "webDir": "www",
   "server": {
-    "url": "https://bilge360.com/ik/ik.php",
+    "url": "https://bilge360.com/ik/giris_cikis.php",
     "cleartext": false,
     "allowNavigation": ["bilge360.com", "*.bilge360.com"],
     "errorPath": "hata.html"

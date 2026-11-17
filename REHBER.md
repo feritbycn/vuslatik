@@ -1,6 +1,6 @@
 # Bilge360 İK — Mobil Uygulama (Android AAB/APK + iOS) Rehberi
 
-Uygulama kimliği: `com.bilge360.ik` · Ad: **Bilge360 İK** · Açtığı adres: `https://bilge360.com/ik/ik.php`
+Uygulama kimliği: `com.bilge360.ik` · Ad: **Bilge360 İK** · Açtığı adres: `https://bilge360.com/ik/giris_cikis.php`
 
 ## Depo yapısı
 | Klasör | İçerik |
