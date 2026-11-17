@@ -734,7 +734,7 @@
         var taze = !konumGerek && konumOn && Date.now() - konumOn.ts < 30000;
         // Canlı izleyici son 15 sn içinde kabul edilebilir bir ölçüm verdiyse onu kullan: kişi ikinci kez beklemesin.
         // (Sahte konum puanı yine canlı izleyicinin ham ölçümlerinden hesaplanır.)
-        var canli = konumGerek && konumDurum === 'tamam' && konumOn && konumIds.length && Date.now() - konumOn.ts < 60000; // izleyici açıkken Chrome aynı konumu tekrar göndermez; 60 sn içindeki ölçüm taze sayılır (bekleme yok)
+        var canli = konumGerek && konumDurum === 'tamam' && konumOn && konumIds.length && Date.now() - konumOn.ts < 15000 && (!ANDROID || tamponTaze().length > 0); // son 15 sn içindeki ölçüm; Android'de sahte konum puanı için taze ham ölçüm şart (yoksa yeniden ölçülür)
         if (canli) taze = true;
         var konumSoz = taze ? Promise.resolve(canli ? {
                 enlem: konumOn.enlem, boylam: konumOn.boylam, dogruluk: konumOn.dogruluk, ts: konumOn.ts,
