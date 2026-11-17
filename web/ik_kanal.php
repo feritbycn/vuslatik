@@ -491,7 +491,7 @@ function ik_fcm_gonder($tokenDeger, $baslik, $mesaj, $veri = [])
         'token' => $tokenDeger,
         'notification' => ['title' => $baslik, 'body' => $mesaj],
         'data' => $veri,
-        'android' => ['priority' => 'HIGH', 'notification' => ['channel_id' => 'ik_bildirim', 'sound' => 'default', 'icon' => 'ic_stat_ik']],
+        'android' => ['priority' => 'HIGH', 'notification' => ['channel_id' => 'ik_bildirim_v2', 'sound' => 'default', 'icon' => 'ic_stat_ik']],
         'apns' => ['headers' => ['apns-priority' => '10'], 'payload' => ['aps' => ['sound' => 'default']]],
     ]];
     list($kod, $govde) = ik_http('POST', 'https://fcm.googleapis.com/v1/projects/' . rawurlencode($a['project_id']) . '/messages:send', ['Authorization: Bearer ' . $t, 'Content-Type: application/json; charset=utf-8'], json_encode($ileti, JSON_UNESCAPED_UNICODE), 10);

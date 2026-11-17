@@ -30,7 +30,7 @@
         />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="ik_bildirim"
+            android:value="ik_bildirim_v2"
         />
 
         <provider
