@@ -33,6 +33,49 @@ public class MainActivity extends BridgeActivity {
     private String fcmHata = null;
     private final Handler yol = new Handler(Looper.getMainLooper());
     private int denemeSayac = 0;
+    private String bekleyenLink = null;
+    private final Handler yol2 = new Handler(Looper.getMainLooper());
+    private int gitSayac = 0;
+
+    /** Bildirime dokunulunca FCM, "link" verisini açılış niyetine koyar. Uygulama kapalı ya da arka plandaysa buradan okunur. */
+    private void linkOku(Intent i) {
+        try {
+            if (i == null) return;
+            String l = i.getStringExtra("link");
+            if (l == null || l.isEmpty()) return;
+            i.removeExtra("link");
+            if (l.length() > 300 || !l.matches("[A-Za-z0-9_./?&=%#:~+-]+")) return;
+            bekleyenLink = l;
+            gitDongusu();
+        } catch (Exception ignored) {}
+    }
+    @Override protected void onNewIntent(Intent intent) { super.onNewIntent(intent); setIntent(intent); linkOku(intent); }
+
+    /** Sayfa oturumla açılana kadar bekler, sonra bildirimin sayfasına geçer (yalnızca kendi sitemizin adresleri) */
+    private void gitDongusu() {
+        gitSayac = 0;
+        yol2.removeCallbacksAndMessages(null);
+        yol2.postDelayed(new Runnable() {
+            @Override public void run() {
+                if (bekleyenLink == null) return;
+                gitDene();
+                if (bekleyenLink != null && ++gitSayac < 25) yol2.postDelayed(this, 1000);
+            }
+        }, 800);
+    }
+    private void gitDene() {
+        try {
+            if (getBridge() == null || bekleyenLink == null) return;
+            final WebView w = getBridge().getWebView();
+            if (w == null) return;
+            String url = w.getUrl();
+            if (url == null || !url.contains("bilge360.com")) return;
+            final String l = bekleyenLink;
+            String js = "(function(l){try{if(!window.TB)return 'bekle';var u=new URL(l,location.href);if(u.origin!==location.origin)return 'x';"
+                + "if(location.pathname+location.search!==u.pathname+u.search){if(window.IKM&&window.IKM.git&&window.IKM.git(l))return 'ok';location.href=u.href;}return 'ok';}catch(e){return 'e';}})('" + l + "')";
+            w.evaluateJavascript(js, v -> { if (v != null && (v.contains("ok") || v.contains("\"x\"") || v.contains("\"e\""))) bekleyenLink = null; });
+        } catch (Exception ignored) {}
+    }
 
     @Override public void onResume() { super.onResume(); yenileBayat(); tokenAl(); kayitDongusu(); }
 
@@ -109,6 +152,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(KonumGuvenliPlugin.class);
         super.onCreate(savedInstanceState);
         kanalOlustur();
+        linkOku(getIntent());
 
         // Android 15+ uygulamayı kenardan kenara çizer: üstteki saat/bildirim çubuğu ve alttaki gezinme tuşları
         // içeriğin üstüne biniyordu. İçeriği sistem çubuklarının (ve klavyenin) dışına alıyoruz.
