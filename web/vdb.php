@@ -101,6 +101,8 @@ class VDB extends mysqli
         'ik_puantaj' => 1,
         'ik_push_aboneler' => 1,
         'ik_mobil_cihazlar' => 1,
+        'ik_fcm_kuyruk' => 1,
+        'ik_fcm_log' => 1,
         'ik_zimmetler' => 1,
         'kullanicilar' => 1,
         'modul_yetkileri' => 1,

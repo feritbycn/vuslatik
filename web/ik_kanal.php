@@ -116,6 +116,30 @@ function ik_kanal_sema($db)
         son_basari DATETIME NULL,
         PRIMARY KEY (id), UNIQUE KEY uq_mobil (token_hash), KEY ix_mobil_kisi (kullanici_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    $db->query("CREATE TABLE IF NOT EXISTS ik_fcm_kuyruk (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        bildirim_id BIGINT UNSIGNED NOT NULL,
+        kullanici_id INT NOT NULL,
+        durum VARCHAR(12) NOT NULL DEFAULT 'bekliyor',
+        deneme TINYINT UNSIGNED NOT NULL DEFAULT 0,
+        sonraki DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        tamam TEXT NULL,
+        son_hata VARCHAR(400) NOT NULL DEFAULT '',
+        olusturma DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        gonderim DATETIME NULL,
+        PRIMARY KEY (id), UNIQUE KEY uq_fcm_bildirim (bildirim_id), KEY ix_fcm_durum (durum, sonraki)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    $db->query("CREATE TABLE IF NOT EXISTS ik_fcm_log (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        zaman DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        kullanici_id INT NULL,
+        cihaz_id INT NULL,
+        bildirim_id BIGINT NULL,
+        http SMALLINT NOT NULL DEFAULT 0,
+        sonuc VARCHAR(12) NOT NULL DEFAULT '',
+        ayrinti VARCHAR(400) NOT NULL DEFAULT '',
+        PRIMARY KEY (id), KEY ix_fcm_log_z (zaman)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     $db->query("CREATE TABLE IF NOT EXISTS ik_bildirim_log (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
         zaman DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -475,20 +499,60 @@ function ik_fcm_gonder($tokenDeger, $baslik, $mesaj, $veri = [])
     if ($kod === 400 && stripos($govde, 'INVALID_ARGUMENT') !== false && stripos($govde, 'token') === false) return 400; // ileti hatası: token silinmesin
     return $kod;
 }
-function ik_fcm_kullanici($db, $kid, $baslik, $mesajHtml, $link, $tur, $bid)
+/** Bir bildirim için kuyruk kaydını işler: her cihaza gönderir; geçici hatada artan beklemeyle yeniden dener (en çok 6 deneme).
+ *  "gonderildi" = FCM sunucusu iletiyi KABUL etti; telefonda gerçekten görüntülendiği bu yolla doğrulanamaz. */
+function ik_fcm_kuyruk_isle($db, $satir)
 {
-    if (!ik_fcm_ayar()) return;
-    $kid = intval($kid);
-    $q = $db->query("SELECT id, token FROM ik_mobil_cihazlar WHERE kullanici_id = $kid");
-    if (!$q || !$q->num_rows) return;
-    $duz = trim(preg_replace('~\s+~u', ' ', html_entity_decode(strip_tags(str_replace(['<br>', '<br/>', '</p>'], ' ', (string)$mesajHtml)), ENT_QUOTES, 'UTF-8')));
+    $kid = intval($satir['kullanici_id']); $bid = intval($satir['bildirim_id']); $kid_q = intval($satir['id']);
+    $b = $db->query("SELECT baslik, mesaj, link, tur FROM ik_bildirimler WHERE id = $bid AND kullanici_id = $kid");
+    $b = $b ? $b->fetch_assoc() : null;
+    if (!$b) { $db->query("UPDATE ik_fcm_kuyruk SET durum = 'iptal', son_hata = 'Bildirim bulunamadı' WHERE id = $kid_q"); return; }
+    if (!ik_fcm_ayar()) { $db->query("UPDATE ik_fcm_kuyruk SET durum = 'hata', son_hata = 'config/fcm_servis.json yok veya geçersiz' WHERE id = $kid_q"); return; }
+    $duz = trim(preg_replace('~\s+~u', ' ', html_entity_decode(strip_tags(str_replace(['<br>', '<br/>', '</p>'], ' ', (string)$b['mesaj'])), ENT_QUOTES, 'UTF-8')));
     $duz = mb_substr($duz, 0, 220, 'UTF-8');
-    $veri = ['link' => (string)$link, 'tur' => (string)$tur, 'bildirim_id' => (string)$bid];
-    while ($c = $q->fetch_assoc()) {
-        $kod = ik_fcm_gonder($c['token'], $baslik !== '' ? $baslik : 'İnsan Kaynakları', $duz, $veri);
-        if ($kod === 404 || $kod === 410) $db->query("DELETE FROM ik_mobil_cihazlar WHERE id = " . intval($c['id']));
-        elseif ($kod === 200) $db->query("UPDATE ik_mobil_cihazlar SET son_basari = NOW() WHERE id = " . intval($c['id']));
+    $baslik = trim((string)$b['baslik']) !== '' ? (string)$b['baslik'] : 'İnsan Kaynakları';
+    $veri = ['link' => (string)$b['link'], 'tur' => (string)$b['tur'], 'bildirim_id' => (string)$bid];
+    $tamam = array_filter(array_map('intval', explode(',', (string)($satir['tamam'] ?? ''))));
+    $gecici = false; $sonHata = '';
+    $q = $db->query("SELECT id, token FROM ik_mobil_cihazlar WHERE kullanici_id = $kid");
+    $cihazlar = []; if ($q) while ($c = $q->fetch_assoc()) $cihazlar[] = $c;
+    foreach ($cihazlar as $c) {
+        $cid = intval($c['id']); if (in_array($cid, $tamam, true)) continue;
+        $GLOBALS['ik_fcm_son'] = null;
+        $kod = ik_fcm_gonder($c['token'], $baslik, $duz, $veri);
+        $ayr = mb_substr((string)($GLOBALS['ik_fcm_son']['govde'] ?? ''), 0, 400, 'UTF-8');
+        if ($kod === 200) { $tamam[] = $cid; $sonuc = 'kabul'; $db->query("UPDATE ik_mobil_cihazlar SET son_basari = NOW() WHERE id = $cid"); }
+        elseif ($kod === 404 || ($kod === 400 && stripos($ayr, 'token') !== false) || $kod === 410) { $sonuc = 'gecersiz'; $db->query("DELETE FROM ik_mobil_cihazlar WHERE id = $cid"); }
+        elseif ($kod === 0 || $kod === 401 || $kod === 429 || $kod >= 500) { $sonuc = 'gecici'; $gecici = true; $sonHata = "HTTP $kod $ayr"; }
+        else { $sonuc = 'hata'; $sonHata = "HTTP $kod $ayr"; }
+        $st = $db->prepare("INSERT INTO ik_fcm_log (kullanici_id, cihaz_id, bildirim_id, http, sonuc, ayrinti) VALUES (?, ?, ?, ?, ?, ?)");
+        $st->bind_param('iiiiss', $kid, $cid, $bid, $kod, $sonuc, $ayr); $st->execute();
+        if ($kod === 401 || $kod === 0) @unlink(__DIR__ . '/storage/fcm_erisim.json'); // eski erişim anahtarı atılsın
     }
+    $tm = $db->real_escape_string(implode(',', $tamam)); $he = $db->real_escape_string(mb_substr($sonHata, 0, 400, 'UTF-8'));
+    $deneme = intval($satir['deneme']) + 1;
+    if ($gecici && $deneme < 6) {
+        $bekle = [1, 5, 15, 60, 180][$deneme - 1] ?? 180;
+        $db->query("UPDATE ik_fcm_kuyruk SET durum = 'bekliyor', deneme = $deneme, sonraki = DATE_ADD(NOW(), INTERVAL $bekle MINUTE), tamam = '$tm', son_hata = '$he' WHERE id = $kid_q");
+    } elseif ($sonHata !== '') {
+        $db->query("UPDATE ik_fcm_kuyruk SET durum = 'hata', deneme = $deneme, tamam = '$tm', son_hata = '$he' WHERE id = $kid_q");
+    } else {
+        $db->query("UPDATE ik_fcm_kuyruk SET durum = 'gonderildi', deneme = $deneme, tamam = '$tm', son_hata = '', gonderim = NOW() WHERE id = $kid_q");
+    }
+}
+/** Vakti gelmiş kuyruk kayıtlarını işler (istek sonunda ve cron'dan çağrılır). Satır bir kez "isleniyor"a alınır: iki süreç aynı kaydı göndermez. */
+function ik_fcm_kuyruk_calistir($db, $sinir = 5)
+{
+    if (!ik_fcm_ayar()) return 0;
+    $db->query("UPDATE ik_fcm_kuyruk SET durum = 'bekliyor' WHERE durum = 'isleniyor' AND sonraki < DATE_SUB(NOW(), INTERVAL 10 MINUTE)");
+    $q = $db->query("SELECT * FROM ik_fcm_kuyruk WHERE durum = 'bekliyor' AND sonraki <= NOW() ORDER BY id ASC LIMIT " . intval($sinir));
+    $n = 0; $liste = []; if ($q) while ($r = $q->fetch_assoc()) $liste[] = $r;
+    foreach ($liste as $r) {
+        $db->query("UPDATE ik_fcm_kuyruk SET durum = 'isleniyor', sonraki = NOW() WHERE id = " . intval($r['id']) . " AND durum = 'bekliyor'");
+        if ($db->etkilenen() < 1) continue;
+        try { ik_fcm_kuyruk_isle($db, $r); $n++; } catch (Throwable $e) { $db->query("UPDATE ik_fcm_kuyruk SET durum = 'bekliyor', son_hata = 'Çalışma hatası' WHERE id = " . intval($r['id'])); }
+    }
+    return $n;
 }
 
 /* ---------------------------------------------------------------- Site içi kuyruk ---------------------------------------------------------------- */
@@ -506,7 +570,11 @@ function ik_kuyruga_ekle($db, $kid, $baslik, $mesajHtml, $link = '', $tur = '')
     $var = $db->query("SELECT 1 FROM ik_push_aboneler WHERE kullanici_id = $kid LIMIT 1");
     if ($var && $var->num_rows) ik_sonra(function () use ($db, $kid) { ik_push_kullanici($db, $kid); });
     $mob = $db->query("SELECT 1 FROM ik_mobil_cihazlar WHERE kullanici_id = $kid LIMIT 1");
-    if ($mob && $mob->num_rows) ik_sonra(function () use ($db, $kid, $baslik, $mesajHtml, $link, $tur, $id) { ik_fcm_kullanici($db, $kid, $baslik, $mesajHtml, $link, $tur, $id); });
+    if ($mob && $mob->num_rows) {
+        // Kalıcı kuyruk: bildirim başına tek kayıt (UNIQUE) → aynı olaydan mükerrer push oluşmaz
+        $db->query("INSERT IGNORE INTO ik_fcm_kuyruk (bildirim_id, kullanici_id) VALUES ($id, $kid)");
+        ik_sonra(function () use ($db) { ik_fcm_kuyruk_calistir($db, 5); });
+    }
     return $id;
 }
 
