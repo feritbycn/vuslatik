@@ -113,9 +113,20 @@
             else document.documentElement.requestFullscreen().catch(function () {});
         };
         document.addEventListener('fullscreenchange', function () { if (fs) fs.innerHTML = '<i class="fa-solid ' + (document.fullscreenElement ? 'fa-compress' : 'fa-expand') + '"></i>'; });
+        // Geçmiş kayıtlar: tam ekrandan çıkmadan, küçük bir açılır pencerede gösterilir
         document.getElementById('gct-gecmis').onclick = function () {
-            tercihYaz(false); if (document.fullscreenElement) document.exitFullscreen().catch(function () {}); uygula();
-            var g = icerik.querySelector('.gc-alt-baslik'); if (g) setTimeout(function () { g.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60);
+            var eski = document.getElementById('gcm-perde'); if (eski) eski.remove();
+            var kaynak = icerik.querySelector('.gc-gecmis') || icerik.querySelector('.gc-alt-baslik ~ .gc-bos');
+            var perde = document.createElement('div'); perde.id = 'gcm-perde';
+            perde.innerHTML = '<div class="gcm-sheet" role="dialog" aria-label="Son kayıtlarım"><div class="gcm-ust"><b>Son kayıtlarım</b><button type="button" class="gcm-kapat" aria-label="Kapat"><i class="fa-solid fa-xmark"></i></button></div><div class="gcm-ic"></div></div>';
+            var ic = perde.querySelector('.gcm-ic');
+            if (kaynak) ic.appendChild(kaynak.cloneNode(true)); else ic.innerHTML = '<div class="gcm-bos">Henüz kayıt yok.</div>';
+            function kapat() { perde.remove(); document.removeEventListener('keydown', esc); }
+            function esc(e) { if (e.key === 'Escape') kapat(); }
+            perde.onclick = function (e) { if (e.target === perde) kapat(); };
+            perde.querySelector('.gcm-kapat').onclick = kapat;
+            document.addEventListener('keydown', esc);
+            document.body.appendChild(perde);
         };
         var ks = document.getElementById('gct-kisayol'); if (ks) ks.onclick = kisayolEkle;
         var yon = document.getElementById('gct-yonet');
