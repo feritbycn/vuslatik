@@ -47,6 +47,10 @@
 	<string>Giriş-çıkış kaydında bulunduğunuz konumu doğrulamak için konumunuza erişilir.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Giriş-çıkış kaydında bulunduğunuz konumu doğrulamak için konumunuza erişilir.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Fotoğraf/belge yüklemek için kameraya erişilir.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Fotoğraf/belge yüklemek için galerinize erişilir.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

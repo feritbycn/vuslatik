@@ -33,6 +33,7 @@ $gc_v = function ($yol) { return (int)@filemtime(__DIR__ . '/' . $yol); };
     <div id="gc-icerik"><div class="gc-bos">Yükleniyor…</div></div>
 </main>
 <script src="assets/js/tb-ik-bildirim.js?v=<?= $gc_v('assets/js/tb-ik-bildirim.js') ?>" defer></script>
+<script src="assets/js/tb-mobil-push.js?v=<?= $gc_v('assets/js/tb-mobil-push.js') ?>" defer></script>
 <link rel="stylesheet" href="assets/css/tb-giris-yontem.css?v=<?= $gc_v('assets/css/tb-giris-yontem.css') ?>">
 <script src="assets/js/tb-giris-yontem.js?v=<?= $gc_v('assets/js/tb-giris-yontem.js') ?>" defer></script>
 <script src="assets/js/tb-giris.js?v=<?= $gc_v('assets/js/tb-giris.js') ?>" defer></script>
