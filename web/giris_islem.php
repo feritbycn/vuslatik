@@ -316,6 +316,7 @@ if ($islem === 'damga') {
     if (!empty($_POST['sahte_konum'])) {
         // Mobil uygulama telefonda sahte konum (mock location / konum benzetimi) algıladı: kayıt yapılmaz
         $supheli[] = 'sahte_konum'; $bilgi['sahte_konum'] = 1;
+        g_ik_uyar($db, $uid, 'sup_sahte_engel', '🚫 Sahte konum denemesi', '<b>' . ik_h(g_kisi_adi($db, $uid)) . '</b> sahte konum yazılımı açıkken giriş-çıkış yapmaya çalıştı. İşlem engellendi.', 'ik_giris_kayit', 1);
         gh('Sahte konum algılandı. Konum benzetme uygulamasını kapatıp tekrar deneyin; bu deneme kayıt altına alındı.', 403, ['sahte_konum' => true]);
     }
     if ($konumGerekli) {
@@ -334,7 +335,11 @@ if ($islem === 'damga') {
         if (!giris_ip_eslesir(giris_ip(), $hedef['ip_kisit'])) gh('Ofis ağı dışındasınız: bu geçiş noktası yalnızca ofis internetinden (Wi-Fi) yapılabilir.', 403);
         if (intval($hedef['kod_zorunlu']) === 1 && !giris_kod_dogru($hedef, $_POST['kod'] ?? '')) gh('Ofis ekranındaki 6 haneli kod hatalı ya da süresi geçmiş (kod 30 saniyede bir yenilenir).', 403, ['kod_hata' => true]);
         $noktaId = intval($hedef['id']); $cevapNokta = (string)$hedef['ad']; $cevapMesafe = round($mesafe); $bilgi['mesafe'] = round($mesafe); $bilgi['nokta'] = $hedef['ad'];
-        if ($acc < 1.5) $supheli[] = 'tam_dogruluk';
+        if ($acc < 1.5) {
+            // Gerçek GPS bu kadar kusursuz doğruluk vermez: sahte konum yazılımı sayılır, kayıt yapılmaz, İK'ya bildirilir
+            g_ik_uyar($db, $uid, 'sup_sahte_engel', '🚫 Sahte konum denemesi', '<b>' . ik_h(g_kisi_adi($db, $uid)) . '</b> sahte konum yazılımı açıkken giriş-çıkış yapmaya çalıştı (konum doğruluğu gerçek dışı mükemmel). İşlem engellendi.', 'ik_giris_kayit', 1);
+            gh('Sahte konum algılandı. Konum benzetme uygulamasını kapatıp tekrar deneyin; bu deneme İK\'ya bildirildi.', 403, ['sahte_konum' => true]);
+        }
     } else {
         $sec = intval($_POST['nokta_id'] ?? 0); if ($sec > 0) { $r = $db->query("SELECT id FROM giris_noktalari WHERE id = $sec AND aktif = 1")->fetch_row(); if ($r) $noktaId = intval($r[0]); }
         if ($noktaId) { $nr = $db->query("SELECT ad FROM giris_noktalari WHERE id = $noktaId")->fetch_row(); $cevapNokta = $nr ? (string)$nr[0] : ''; }

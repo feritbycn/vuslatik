@@ -240,6 +240,7 @@
         // Yükseklik yalnızca GPS benzeri ölçümlerde gelir. Wi-Fi/baz konumu aynı noktayı
         // doğal olarak tekrarlayabildiği için "donuk" kuralları yalnızca bu ölçümlere uygulanır.
         var yuk = o.filter(function (x) { return !bos(x.al); });
+        if (o.some(function (x) { return x.ac < 1.5; })) ekle(SAHTE_ESIK, 'dogruluk_1_5m_alti');   // gerçek GPS bu kadar kusursuz olmaz
         if (hepsi(function (x) { return x.ac <= 2; })) ekle(40, 'dogruluk_2m_alti');
         if (hepsi(function (x) { return tamsayi(x.ac); })) ekle(15, 'dogruluk_tamsayi');
         if (yuk.length >= 3 && yuk.every(function (x) { return x.ac === yuk[0].ac; })) ekle(15, 'dogruluk_sabit');
