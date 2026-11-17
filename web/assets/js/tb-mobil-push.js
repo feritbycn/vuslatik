@@ -22,10 +22,20 @@
         return fetch(API, { method: 'POST', body: fd, credentials: 'same-origin', keepalive: !!hizli, headers: { 'X-CSRF-Token': csrf() } });
     }
     function depo(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} return null; }
-    function kaydet(token) {
+    function kaydet(token, deneme) {
         if (!token) return;
+        deneme = deneme || 0;
         depo('ik_mobil_token', token);
-        yolla('mobil_kayit', { token: token, platform: platform }).catch(function () {});
+        var tekrar = function (neden) {
+            if (deneme < 3) return setTimeout(function () { kaydet(token, deneme + 1); }, 15000 * (deneme + 1));
+            uyar('Telefon bildirim kaydı sunucuya yapılamadı (' + neden + '). Çıkış yapıp yeniden girin; sürerse yöneticiye bildirin.');
+        };
+        yolla('mobil_kayit', { token: token, platform: platform }).then(function (r) {
+            return r.json().catch(function () { return { ok: false, hata: 'sunucu yanıtı okunamadı, HTTP ' + r.status }; }).then(function (j) {
+                if (j && j.ok) { depo('ik_mobil_kayit', String(Date.now())); return; }
+                tekrar((j && j.hata) || ('HTTP ' + r.status));
+            });
+        }).catch(function (e) { tekrar((e && e.message) || 'ağ hatası'); });
     }
     function ac(link) {
         if (!link) return;
