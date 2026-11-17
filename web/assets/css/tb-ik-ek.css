@@ -413,6 +413,8 @@
 @media (max-width: 760px) {
     /* Bildirim paneli: üst çubuğa göre ekran genişliğine otur, soldan taşma */
     .ikm-zil-kap { position: static; }
+    .ikm-ust-sag { position: static; }
+    #ikm-zil { position: relative; }
     .ikm-zil-panel { position: absolute; left: 10px; right: 10px; top: calc(100% + 6px); width: auto; max-width: none; }
     .ikm-zil-liste { max-height: min(58vh, 420px); }
     .ikm-zil-alt { grid-template-columns: 1fr; }
