@@ -161,6 +161,26 @@
         icerik.scrollTop = 0; window.scrollTo({ top: 0 });
         icerik.classList.remove('ikm-gir'); void icerik.offsetWidth; icerik.classList.add('ikm-gir');
         try { GORUNUM[s](ozel || {}); } catch (e) { icerik.innerHTML = hataKutu(e.message); }
+        if (ozel && ozel.id && !/^(duyurular|anketler|izinler|avanslar)$/.test(s)) vurgula(ozel.id);
+    }
+    /** Bildirimden gelen kayıt numarasını açılan listede bulur, ortaya kaydırır ve vurgular (her sayfa kendi biçiminde çizer; satırlardaki data-* etiketlerine bakılır) */
+    function vurgula(id) {
+        var sid = String(id), n = 0;
+        var dsen = /^data-(?:[a-z]+-)*(?:id|onay|red|sil|duz|tamam|detay|ac|karar|kayit)$|^data-(?:mas|ms|mesai)[a-z-]*$/;
+        var t = setInterval(function () {
+            n++;
+            var hedef = null, hepsi = icerik.getElementsByTagName('*');
+            for (var i = 0; i < hepsi.length && !hedef; i++) {
+                var at = hepsi[i].attributes;
+                for (var k = 0; k < at.length; k++) { if (at[k].value === sid && dsen.test(at[k].name)) { hedef = hepsi[i]; break; } }
+            }
+            if (hedef) {
+                clearInterval(t);
+                var sat = (hedef.closest && hedef.closest('.ikm-satir,.ikm-kart,tr,li')) || hedef;
+                try { sat.scrollIntoView({ block: 'center' }); } catch (e) {}
+                sat.style.boxShadow = '0 0 0 2px #6366f1'; sat.style.background = 'rgba(99,102,241,.10)'; sat.style.borderRadius = '14px';
+            } else if (n > 14) clearInterval(t);
+        }, 250);
     }
     /** ik.php?sekme=…&talep=… biçimli bağlantıları sayfa yenilemeden açar. true = işlendi */
     function git(link) {
