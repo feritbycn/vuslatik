@@ -519,8 +519,10 @@
         else if (konumDurum === 'yok') { durum = 'yok'; b1 = 'Konum doğrulaması kapalı'; b2 = 'Bu işlem için konum istenmiyor.'; }
         else if (sahteKonumPuani().puan >= SAHTE_ESIK) {
             // Sahte konum şüphesi: kart kırmızı, kaydırma düğmesi kilitli
-            durum = 'hata'; b1 = 'Sahte konum tespit edildi'; tekrar = true;
-            b2 = 'Sahte konum uygulamasını kapatın (Geliştirici seçenekleri → Sahte konum uygulaması: Yok), GPS\'i açıp tekrar deneyin.';
+            durum = 'hata sahte'; tekrar = true;
+            b1 = '<i class="fa-solid fa-skull-crossbones"></i> Güvenlik uyarısı: sahte konum yazılımı';
+            b2 = 'Telefonunuzda konumu değiştiren zararlı/sahte GPS yazılımı çalışıyor. Giriş-çıkış engellendi ve bu durum İK\'ya bildirilebilir. Uygulamayı kapatın (Geliştirici seçenekleri → Sahte konum uygulaması: Yok), GPS\'i açıp tekrar deneyin.';
+            if (!window.__sahteUyarildi) { window.__sahteUyarildi = true; try { navigator.vibrate && navigator.vibrate([300, 120, 300, 120, 500]); } catch (e) {} }
         }
         else if (konumOn) {
             var n = etkinNokta(), dg = Math.round(konumOn.dogruluk || 0);

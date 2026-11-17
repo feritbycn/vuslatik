@@ -415,3 +415,16 @@ html.gc-yesil .gc-tablo-kap::-webkit-scrollbar-thumb { background: rgba(255,255,
 html.gc-yesil .gc-bugun-baslik, html.gc-yesil .gc-fazla-satir span, html.gc-yesil .gc-fazla-satir { color: rgba(255,255,255,.92) !important; }
 html.gc-yesil .gc-saat, html.gc-yesil .gc-saat span { color: #fff !important; }
 html.gc-yesil .gc-durum.dis { background: rgba(255,255,255,.16); color: #fff !important; border-color: rgba(255,255,255,.5); }
+
+/* Sahte konum yazılımı: güvenlik uyarısı kartı */
+.gc-konum-kart.sahte, [data-tema="dark"] .gc-konum-kart.sahte, body.gc-tam .gc-konum-kart.sahte, html.gc-yesil .gc-konum-kart.sahte {
+    display: block; position: relative; padding: 16px 16px 14px; border: 2px solid #ef4444; border-radius: 16px;
+    background: repeating-linear-gradient(-45deg, #7f1d1d, #7f1d1d 14px, #991b1b 14px, #991b1b 28px); color: #fff;
+    box-shadow: 0 0 0 0 rgba(239,68,68,.6); animation: gc-sahte-nabiz 1.4s ease-out infinite;
+}
+.gc-konum-kart.sahte .gc-nokta-ikon { display: none; }
+.gc-konum-kart.sahte b { display: block; font-size: 16px; line-height: 1.3; color: #fff; margin-bottom: 6px; }
+.gc-konum-kart.sahte b i { color: #fecaca; margin-right: 6px; }
+.gc-konum-kart.sahte small { display: block; font-size: 13px; line-height: 1.5; color: #fee2e2; }
+.gc-konum-kart.sahte .gc-btn { margin-top: 12px; width: 100%; background: #fff; color: #7f1d1d; border: 0; }
+@keyframes gc-sahte-nabiz { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,.55); } 70% { box-shadow: 0 0 0 14px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
