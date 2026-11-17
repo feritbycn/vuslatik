@@ -35,6 +35,7 @@ public class MainActivity extends BridgeActivity {
     private int denemeSayac = 0;
     private String bekleyenLink = null;
     private final Handler yol2 = new Handler(Looper.getMainLooper());
+    private final Handler yol3 = new Handler(Looper.getMainLooper());
     private int gitSayac = 0;
 
     /** Bildirime dokunulunca FCM, "link" verisini açılış niyetine koyar. Uygulama kapalı ya da arka plandaysa buradan okunur. */
@@ -142,7 +143,7 @@ public class MainActivity extends BridgeActivity {
             w.evaluateJavascript(js, null);
         } catch (Exception ignored) {}
     }
-    @Override public void onPause() { super.onPause(); yol2.removeCallbacks(cubukIs); durdu = System.currentTimeMillis(); }
+    @Override public void onPause() { super.onPause(); yol3.removeCallbacks(cubukIs); durdu = System.currentTimeMillis(); }
 
     /** Giriş sayfası uzun süre arka planda kaldıysa güvenlik jetonu eskir; sayfayı yenile */
     private void yenileBayat() {
@@ -220,8 +221,8 @@ public class MainActivity extends BridgeActivity {
                     });
                 }
             } catch (Throwable ignored) {}
-            yol2.postDelayed(this, 800);
+            yol3.postDelayed(this, 800);
         }
     };
-    private void cubukDongusu() { yol2.removeCallbacks(cubukIs); yol2.postDelayed(cubukIs, 400); }
+    private void cubukDongusu() { yol3.removeCallbacks(cubukIs); yol3.postDelayed(cubukIs, 400); }
 }
