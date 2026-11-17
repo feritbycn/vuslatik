@@ -46,7 +46,7 @@
         ust.innerHTML = '<div class="gct-selam"><small id="gct-tarih"></small><b id="gct-selam"></b></div><div class="gct-saat" id="gct-saat"></div>' +
             '<div class="gct-btnler">' + (kisayolGoster() ? '<button type="button" id="gct-kisayol" title="Ana ekrana kısayol ekle"><i class="fa-solid fa-mobile-screen-button"></i></button>' : '') +
             '<button type="button" id="gct-gecmis" title="Son kayıtlarım"><i class="fa-solid fa-clock-rotate-left"></i></button>' +
-            (document.documentElement.requestFullscreen ? '<button type="button" id="gct-fs" title="Tam ekran"><i class="fa-solid fa-expand"></i></button>' : '') +
+            '' +
             ((sekmeler || (window.GC && window.GC.yetki && window.GC.yetki.gor)) ? '<button type="button" id="gct-yonet" title="Kayıtlar ve raporlar"><i class="fa-solid fa-table-list"></i></button>' : '') +
             '<button type="button" id="gct-kapat" title="Küçült"><i class="fa-solid fa-compress"></i></button></div>';
         sayfa.insertBefore(ust, sayfa.firstChild);
