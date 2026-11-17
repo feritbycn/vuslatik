@@ -39,15 +39,14 @@ Depo → Settings → Secrets and variables → Actions → New repository secre
 Anahtarı yoksa üretmek için (bir kez, **yedekleyin — kaybolursa uygulama güncellenemez**):
 `keytool -genkey -v -keystore bilge360-ik.jks -alias bilge360 -keyalg RSA -keysize 2048 -validity 10000`
 
-**iOS**
+**iOS** (sertifika/profil dosyası gerekmez; imzalama otomatik yapılır)
 | Secret | Değer |
 |---|---|
 | `GOOGLE_SERVICE_INFO_PLIST_B64` | `GoogleService-Info.plist` (base64) |
 | `APPLE_TEAM_ID` | Apple Developer Team ID (10 karakter) |
-| `IOS_CERT_P12_B64` | **Apple Distribution** sertifikası `.p12` (base64) |
-| `IOS_CERT_PASSWORD` | .p12 şifresi |
-| `IOS_PROVISION_PROFILE_B64` | `com.bilge360.ik` için **App Store** provisioning profili (base64) |
-| `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8_B64` | (TestFlight yüklemesi için) App Store Connect API anahtarı |
+| `ASC_KEY_ID` | App Store Connect → Kullanıcılar ve Erişim → Entegrasyonlar → API anahtarı: Key ID |
+| `ASC_ISSUER_ID` | Aynı sayfadaki Issuer ID |
+| `ASC_KEY_P8_B64` | İndirdiğiniz `AuthKey_XXXX.p8` dosyası (base64). Anahtar rolü **Admin** veya **App Manager** olmalı |
 
 Apple Developer'da App ID `com.bilge360.ik` için **Push Notifications** yeteneğini açın; profili o App ID ile oluşturun.
 
