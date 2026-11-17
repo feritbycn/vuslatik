@@ -9,7 +9,7 @@
 (function () {
     'use strict';
     var ANAHTAR = 'gc_tam_ekran';
-    function tercih() { try { return localStorage.getItem(ANAHTAR) !== '0'; } catch (e) { return true; } }
+    function tercih() { return true; }   // her zaman tam ekran (küçültme kaldırıldı)
     function tercihYaz(v) { try { localStorage.setItem(ANAHTAR, v ? '1' : '0'); } catch (e) {} }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
@@ -48,7 +48,7 @@
             '<button type="button" id="gct-gecmis" title="Son kayıtlarım"><i class="fa-solid fa-clock-rotate-left"></i></button>' +
             '' +
             ((sekmeler || (window.GC && window.GC.yetki && window.GC.yetki.gor)) ? '<button type="button" id="gct-yonet" title="Kayıtlar ve raporlar"><i class="fa-solid fa-table-list"></i></button>' : '') +
-            '<button type="button" id="gct-kapat" title="Küçült"><i class="fa-solid fa-compress"></i></button></div>';
+            '</div>';
         sayfa.insertBefore(ust, sayfa.firstChild);
         var ac = document.createElement('button'); ac.type = 'button'; ac.className = 'gct-ac'; ac.innerHTML = '<i class="fa-solid fa-up-right-and-down-left-from-center"></i> Tam ekran';
         document.body.appendChild(ac);
@@ -105,7 +105,7 @@
         }).observe(icerik, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
         if (sekmeler) sekmeler.addEventListener('click', function () { setTimeout(uygula, 0); });
 
-        document.getElementById('gct-kapat').onclick = function () { tercihYaz(false); if (document.fullscreenElement) document.exitFullscreen().catch(function () {}); uygula(); };
+        var kpt = document.getElementById('gct-kapat'); if (kpt) kpt.onclick = function () { tercihYaz(false); uygula(); };
         ac.onclick = function () { tercihYaz(true); uygula(); };
         var fs = document.getElementById('gct-fs');
         if (fs) fs.onclick = function () {
