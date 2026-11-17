@@ -3,6 +3,7 @@
 (function () {
     'use strict';
     var G = window.GIRIS || {}; if (!G.intro) return;
+    if (/Bilge360App/i.test(navigator.userAgent || '')) return;   // mobil uygulamada tanıtım gösterilmez
     var ANAHTAR = 'tb_intro_v1', zorla = /[?&]intro=1\b/.test(location.search);
     try { if (!zorla && localStorage.getItem(ANAHTAR)) return; } catch (e) {}
     if (!zorla && window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;

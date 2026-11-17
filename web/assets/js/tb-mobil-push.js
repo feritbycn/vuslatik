@@ -11,6 +11,7 @@
     var C = window.Capacitor;
     if (!C || !(C.isNativePlatform && C.isNativePlatform())) return;
     document.documentElement.classList.add('mobil-app');
+    try { localStorage.setItem('ikb_ses', '0'); } catch (e) {}   // uygulamada sitenin zil sesi yerine telefonun varsayılan bildirim sesi kullanılır
     var FM = null;
     try { FM = C.registerPlugin ? C.registerPlugin('FirebaseMessaging') : (C.Plugins && C.Plugins.FirebaseMessaging); } catch (e) { FM = C.Plugins && C.Plugins.FirebaseMessaging; }
     var APIx = 'ik_bildirim.php';
