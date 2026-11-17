@@ -21,7 +21,7 @@
   "plugins": {
     "SplashScreen": {
       "launchShowDuration": 800,
-      "backgroundColor": "#4f46e5",
+      "backgroundColor": "#040a1a",
       "showSpinner": false
     },
     "FirebaseMessaging": {
