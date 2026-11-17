@@ -180,7 +180,7 @@ body.gc-tam .vh-toast-yigin { top: max(14px, env(safe-area-inset-top)); bottom: 
 .gcm-ust { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; font-size: 16px; }
 .gcm-kapat { width: 36px; height: 36px; border-radius: 11px; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.1); color: #fff; font-size: 16px; cursor: pointer; }
 .gcm-ic { overflow-y: auto; padding: 0 14px 16px; -webkit-overflow-scrolling: touch; }
-.gcm-sheet .gc-gecmis { display: block !important; background: transparent; border: 1px solid rgba(255,255,255,.14); border-radius: 14px; overflow: hidden; }
+body .gcm-sheet .gc-gecmis, body.gc-tam .gcm-sheet .gc-gecmis { display: block !important; visibility: visible !important; opacity: 1 !important; background: transparent; border: 1px solid rgba(255,255,255,.14); border-radius: 14px; overflow: hidden; }
 .gcm-sheet .gc-g-satir { display: flex; justify-content: space-between; gap: 10px; padding: 11px 12px; border-bottom: 1px solid rgba(255,255,255,.1); font-size: 13.5px; color: #fff; }
 .gcm-sheet .gc-g-satir:last-child { border-bottom: 0; }
 .gcm-sheet .gc-g-satir span { color: rgba(255,255,255,.8); }
