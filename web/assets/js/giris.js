@@ -92,7 +92,10 @@
         });
     });
     ['g-yeni', 'g-yeni2'].forEach(function (id) { $('#' + id).addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); $('#g-sifre-kaydet').click(); } }); });
+    // Açılışta otomatik odak yalnızca bilgisayarda: telefonda/uygulamada klavyeyi kendiliğinden açmasın
+    if (!(window.matchMedia && matchMedia('(pointer: coarse)').matches) && !/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
     if (!seciliKod && G.liste) { var ara2 = $('#g-kurum-ara'); if (ara2) ara2.focus(); } else if (!G.liste && !($('#g-kurum-ara').value)) $('#g-kurum-ara').focus(); else $('#g-kullanici').focus();
+    }
 })();
 (function(){
     /* Kullanıcı adı her zaman küçük harfle yazılır (İ→i, I→i) */
