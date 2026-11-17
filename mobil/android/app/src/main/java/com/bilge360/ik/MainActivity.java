@@ -63,10 +63,10 @@ public class MainActivity extends BridgeActivity {
         getWindow().getDecorView().setBackgroundColor(zemin);
 
         // Durum çubuğu / gezinme çubuğu simgeleri açık zeminde koyu görünsün
-        WindowInsetsControllerCompat denetim = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
-        if (denetim != null) {
-            denetim.setAppearanceLightStatusBars(true);
-            denetim.setAppearanceLightNavigationBars(true);
+        WindowInsetsControllerCompat cubuk = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        if (cubuk != null) {
+            cubuk.setAppearanceLightStatusBars(true);
+            cubuk.setAppearanceLightNavigationBars(true);
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(kok, (v, insets) -> {
