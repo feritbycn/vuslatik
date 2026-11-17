@@ -28,6 +28,10 @@
       "presentationOptions": [
         "badge"
       ]
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_ik",
+      "iconColor": "#0EA5E9"
     }
   },
   "appendUserAgent": "Bilge360App"

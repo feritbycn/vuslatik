@@ -75,6 +75,38 @@
         };
         try { navigator.geolocation.getCurrentPosition = yerel.getCurrentPosition; navigator.geolocation.watchPosition = yerel.watchPosition; navigator.geolocation.clearWatch = yerel.clearWatch; } catch (e) {}
     }
+    /* ---- Uygulama içi yerel bildirim ----
+       Sayfa, sitenin bildirim kaynağını kendisi yoklar (tb-ik-bildirim.js). Yeni bildirim bulunca telefonun bildirim
+       çubuğuna da gerçek bir sistem bildirimi düşürülür; dokununca ilgili sayfa açılır. */
+    var LN = null;
+    try { LN = C.registerPlugin ? C.registerPlugin('LocalNotifications') : (C.Plugins && C.Plugins.LocalNotifications); } catch (e) {}
+    function duz(h) { return String(h || '').replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\s+/g, ' ').trim(); }
+    function yerelHazir() {
+        if (!LN) return Promise.resolve(false);
+        return LN.checkPermissions().then(function (r) { return r.display === 'granted' ? r : LN.requestPermissions(); }).then(function (r) {
+            if (r.display !== 'granted') return false;
+            if (platform === 'android' && LN.createChannel) return LN.createChannel({ id: 'ik_bildirim', name: 'İK bildirimleri', description: 'İzin, onay ve duyuru bildirimleri', importance: 5, visibility: 1, vibration: true }).catch(function () {}).then(function () { return true; });
+            return true;
+        }).catch(function () { return false; });
+    }
+    function yerelBildirim(b) {
+        var son = parseInt(depo('ik_yerel_son') || '0', 10) || 0, id = parseInt(b.id, 10) || 0;
+        if (id && id <= son) return;                      // aynı bildirim iki kez gösterilmesin
+        if (id) depo('ik_yerel_son', String(id));
+        yerelHazir().then(function (ok) {
+            if (!ok) return;
+            LN.schedule({ notifications: [{ id: id || (Date.now() % 2147483000), title: duz(b.baslik) || 'İnsan Kaynakları', body: duz(b.mesaj), channelId: 'ik_bildirim', smallIcon: 'ic_stat_ik', extra: { link: b.link || '' } }] }).catch(function () {});
+        });
+    }
+    if (LN) {
+        LN.addListener('localNotificationActionPerformed', function (e) { var x = e && e.notification && e.notification.extra; if (x && x.link) ac(x.link); });
+        var kancala = function () {
+            if (!window.IKBildirim || !window.IKBildirim.on) return setTimeout(kancala, 500);
+            window.IKBildirim.on(function (o) { if (o && o.tip === 'yeni' && o.items) o.items.slice(-3).forEach(yerelBildirim); });
+            yerelHazir();
+        };
+        kancala();
+    }
     /* Konum izni: tarayıcıdaki gibi sorulur (Android/iOS işletim sistemi penceresi çıkar) */
     function konumIzni() {
         if (KG) return KG.izinIste().catch(function () {});
