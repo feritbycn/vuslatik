@@ -68,13 +68,18 @@ jobs:
         working-directory: mobil/android
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon bundleRelease assembleRelease
+          ./gradlew --no-daemon bundleRelease assembleRelease assembleDebug
 
       - name: Çıktıları topla
         run: |
           mkdir -p ../cikti
           cp android/app/build/outputs/bundle/release/*.aab ../cikti/ 2>/dev/null || true
-          cp android/app/build/outputs/apk/release/*.apk ../cikti/ 2>/dev/null || true
+          if [ "${{ steps.imza.outputs.imzali }}" = "1" ]; then
+            cp android/app/build/outputs/apk/release/app-release.apk ../cikti/bilge360-ik-release.apk
+          else
+            echo "::warning::Anahtar yok: kurulabilir TEST apk (debug imzalı) üretildi; Play Store için ANDROID_KEYSTORE_* secret'larını ekleyin"
+          fi
+          cp android/app/build/outputs/apk/debug/app-debug.apk ../cikti/bilge360-ik-test-kurulabilir.apk
           ls -la ../cikti
 
       - uses: actions/upload-artifact@v4
