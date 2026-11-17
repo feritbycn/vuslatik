@@ -655,7 +655,7 @@ function ik_bildirim_link($tablo, $bid = 0)
         case 'ik_giris_kayit': return 'ik.php?sekme=gc_kayitlar';
         case 'ik_mesai': return 'ik.php?sekme=mesailer';
         case 'ik_masraf': return 'ik.php?sekme=masraflar';
-        case 'ik_avans': return 'ik.php?sekme=avanslar';
+        case 'ik_avans': return 'ik.php?sekme=avanslar' . ($bid ? '&id=' . $bid : '');
         case 'ik_bordro': return 'ik.php?sekme=bordro';
         case 'ik_egitim': return 'ik.php?sekme=egitimler';
         case 'ik_performans': return 'ik.php?sekme=performans';

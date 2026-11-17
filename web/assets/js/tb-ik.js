@@ -968,18 +968,21 @@
 
     /* ======================= AVANS TALEPLERİ ======================= */
     var av2 = { kapsam: 'benim' };
-    function avanslarCiz() {
+    function avanslarCiz(ozel) {
+        var hedef = (ozel && ozel.id) ? parseInt(ozel.id, 10) || 0 : 0;   // bildirimden gelen talep numarası
         icerik.innerHTML = yukleniyor();
         getir({ islem: 'avanslar', kapsam: av2.kapsam }).then(function (j) {
+            if (hedef && av2.kapsam === 'benim' && j.tum_gorebilir && !j.liste.some(function (k) { return +k.id === hedef; })) { av2.kapsam = 'tum'; return avanslarCiz({ id: hedef }); }
             var ust = '<div class="ikm-arac">' + (j.tum_gorebilir ? '<div class="ikm-segment"><button type="button" data-k="benim" class="' + (av2.kapsam === 'benim' ? 'aktif' : '') + '">Benim taleplerim</button><button type="button" data-k="tum" class="' + (av2.kapsam === 'tum' ? 'aktif' : '') + '">Tüm personel</button></div>' : '') +
                 '<button type="button" class="ikm-btn ikm-btn-ana" id="ik-av-ekle" style="margin-left:auto"><i class="fa-solid fa-plus"></i> Avans talep et</button></div>';
             var liste = j.liste.length ? '<div class="ikm-liste">' + j.liste.map(function (k) {
-                return '<div class="ikm-satir sabit">' + av(k.ad, k.renk, k.resim) + '<div class="ikm-satir-ic"><b>Avans' + (k.taksit > 1 ? ' · ' + k.taksit + ' taksit' : ' · tek seferde') + (k.tarih ? ' · ' + tarih(k.tarih) : '') + '</b><small>' + esc(k.ad) + (k.aciklama ? ' · ' + esc(k.aciklama) : '') + '</small>' + (k.durum !== 'beklemede' && k.onay_notu ? '<div class="ikm-not">Not: ' + esc(k.onay_notu) + '</div>' : '') + '</div>' +
+                return '<div class="ikm-satir sabit" data-avid="' + k.id + '">' + av(k.ad, k.renk, k.resim) + '<div class="ikm-satir-ic"><b>Avans' + (k.taksit > 1 ? ' · ' + k.taksit + ' taksit' : ' · tek seferde') + (k.tarih ? ' · ' + tarih(k.tarih) : '') + '</b><small>' + esc(k.ad) + (k.aciklama ? ' · ' + esc(k.aciklama) : '') + '</small>' + (k.durum !== 'beklemede' && k.onay_notu ? '<div class="ikm-not">Not: ' + esc(k.onay_notu) + '</div>' : '') + '</div>' +
                     durumCip(k.durum) + '<span class="ikm-tutar">' + para(k.tutar) + '</span>' +
                     (k.durum === 'beklemede' && av2.kapsam === 'tum' ? '<button type="button" class="ikm-btn ikm-btn-kucuk ikm-btn-yesil" data-av-onay="' + k.id + '">Onayla</button><button type="button" class="ikm-btn ikm-btn-kucuk ikm-btn-tehlike" data-av-red="' + k.id + '">Reddet</button>' :
                         (k.durum === 'beklemede' ? '<button type="button" class="ikm-btn ikm-btn-kucuk ikm-btn-ikon ikm-btn-tehlike" data-av-sil="' + k.id + '" title="Sil"><i class="fa-solid fa-trash"></i></button>' : '')) + '</div>';
             }).join('') + '</div>' : bosKutu('fa-hand-holding-dollar', 'Avans talebi yok', '“Avans talep et” ile yeni talep oluşturun.');
             icerik.innerHTML = ust + liste;
+            if (hedef) { var hs = icerik.querySelector('[data-avid="' + hedef + '"]'); if (hs) { try { hs.scrollIntoView({ block: 'center' }); } catch (e) {} hs.style.boxShadow = '0 0 0 2px #6366f1'; hs.style.background = 'rgba(99,102,241,.10)'; hs.style.borderRadius = '14px'; } }
             $$('.ikm-segment [data-k]', icerik).forEach(function (b) { b.onclick = function () { av2.kapsam = b.dataset.k; avanslarCiz(); }; });
             $('#ik-av-ekle').onclick = avansFormu;
             $$('[data-av-onay]', icerik).forEach(function (b) { b.onclick = function () { gonder('avans_karar', { id: b.dataset.avOnay, karar: 'onay' }).then(function () { bildir('Avans onaylandı.', 'basari'); avanslarCiz(); }).catch(function (er) { bildir(er.message, 'hata'); }); }; });
