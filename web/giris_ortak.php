@@ -231,7 +231,7 @@ function giris_cihaz_adi($ua)
     $ua = (string)$ua;
     $os = preg_match('/Android/i', $ua) ? 'Android' : (preg_match('/iPhone|iPad|iOS/i', $ua) ? 'iPhone/iPad' : (preg_match('/Windows/i', $ua) ? 'Windows' : (preg_match('/Mac OS/i', $ua) ? 'Mac' : (preg_match('/Linux/i', $ua) ? 'Linux' : 'Bilinmeyen'))));
     $br = preg_match('/Edg/i', $ua) ? 'Edge' : (preg_match('/OPR|Opera/i', $ua) ? 'Opera' : (preg_match('/SamsungBrowser/i', $ua) ? 'Samsung Internet' : (preg_match('/Chrome|CriOS/i', $ua) ? 'Chrome' : (preg_match('/Firefox|FxiOS/i', $ua) ? 'Firefox' : (preg_match('/Safari/i', $ua) ? 'Safari' : 'Tarayıcı')))));
-    if (preg_match('/Bilge360App/i', $ua)) $br = 'Bilge360 uygulaması';   // mobil uygulama (WebView) tarayıcı sayılmasın
+    if (preg_match('/Bilge360App/i', $ua)) $br = 'Uygulama';   // mobil uygulama (WebView) tarayıcı sayılmasın
     return $os . ' · ' . $br;
 }
 function giris_sure_yaz($sn)
