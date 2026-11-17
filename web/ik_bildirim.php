@@ -57,6 +57,23 @@ if ($islem === 'vapid') {
     if (!$v) ikb_h('Bu sunucuda Web Push desteklenmiyor (PHP openssl eksik).', 501);
     ikb_c(['ok' => true, 'anahtar' => $v['public']]);
 }
+if ($islem === 'mobil_tani') {
+    // Mobil bildirim tanısı: ayar var mı, kayıtlı cihaz kaç, test bildirimi gidiyor mu (yalnızca kendi cihazlarınıza)
+    $ayar = ik_fcm_ayar();
+    $cihazlar = []; $q = $db->query("SELECT id, platform, LEFT(token, 12) AS t, olusturma, son_basari FROM ik_mobil_cihazlar WHERE kullanici_id = $uid ORDER BY id DESC LIMIT 10");
+    if ($q) while ($r = $q->fetch_assoc()) $cihazlar[] = $r;
+    $sonuc = [];
+    if ($ayar && $cihazlar) {
+        $q = $db->query("SELECT id, token FROM ik_mobil_cihazlar WHERE kullanici_id = $uid");
+        while ($c = $q->fetch_assoc()) {
+            $GLOBALS['ik_fcm_son'] = null;
+            $kod = ik_fcm_gonder($c['token'], 'Bilge360 İK', 'Bu bir test bildirimidir.', ['link' => 'ik.php', 'tur' => 'test', 'bildirim_id' => '0']);
+            $sonuc[] = ['cihaz' => intval($c['id']), 'http' => $kod, 'ayrinti' => $GLOBALS['ik_fcm_son']['govde'] ?? ''];
+        }
+    }
+    ikb_c(['ok' => true, 'fcm_servis_dosyasi' => $ayar !== null, 'proje' => $ayar['project_id'] ?? null, 'openssl' => function_exists('openssl_sign'), 'curl' => function_exists('curl_init'), 'kayitli_cihaz' => count($cihazlar), 'cihazlar' => $cihazlar, 'test_sonucu' => $sonuc,
+        'yorum' => !$ayar ? 'config/fcm_servis.json yok ya da geçersiz.' : (!$cihazlar ? 'Bu kullanıcı için kayıtlı telefon yok: uygulama cihaz kodunu sunucuya kaydedememiş (bildirim izni verilmemiş, google-services.json eksik ya da web dosyaları sunucuda yüklü değil).' : 'Test bildirimi gönderildi; http 200 ise telefon almalı.')]);
+}
 if ($islem === 'push_liste') {
     $liste = [];
     $q = $db->query("SELECT * FROM ik_bildirimler WHERE kullanici_id = $uid AND push_durum = 0 AND olusturma > DATE_SUB(NOW(), INTERVAL 1 DAY) ORDER BY id ASC LIMIT 5");

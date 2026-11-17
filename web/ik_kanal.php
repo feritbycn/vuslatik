@@ -450,10 +450,10 @@ function ik_fcm_erisim_anahtari()
     $simdi = time();
     $h = ik_b64u(json_encode(['alg' => 'RS256', 'typ' => 'JWT']));
     $p = ik_b64u(json_encode(['iss' => $a['client_email'], 'scope' => 'https://www.googleapis.com/auth/firebase.messaging', 'aud' => 'https://oauth2.googleapis.com/token', 'iat' => $simdi, 'exp' => $simdi + 3600]));
-    if (!openssl_sign("$h.$p", $imza, $a['private_key'], OPENSSL_ALGO_SHA256)) return null;
+    if (!openssl_sign("$h.$p", $imza, $a['private_key'], OPENSSL_ALGO_SHA256)) { $GLOBALS['ik_fcm_son'] = ['kod' => 0, 'govde' => 'Servis hesabı özel anahtarı okunamadı (fcm_servis.json bozuk olabilir)']; return null; }
     list($kod, $govde) = ik_http('POST', 'https://oauth2.googleapis.com/token', ['Content-Type: application/x-www-form-urlencoded'], http_build_query(['grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer', 'assertion' => "$h.$p." . ik_b64u($imza)]), 10);
     $j = json_decode($govde, true);
-    if ($kod !== 200 || empty($j['access_token'])) return null;
+    if ($kod !== 200 || empty($j['access_token'])) { $GLOBALS['ik_fcm_son'] = ['kod' => $kod, 'govde' => 'Google erişim anahtarı alınamadı: ' . mb_substr((string)$govde, 0, 300, 'UTF-8')]; return null; }
     @file_put_contents($onb, json_encode(['t' => $j['access_token'], 'e' => $simdi + intval($j['expires_in'] ?? 3600)]), LOCK_EX);
     return $j['access_token'];
 }
@@ -471,6 +471,7 @@ function ik_fcm_gonder($tokenDeger, $baslik, $mesaj, $veri = [])
         'apns' => ['headers' => ['apns-priority' => '10'], 'payload' => ['aps' => ['sound' => 'default']]],
     ]];
     list($kod, $govde) = ik_http('POST', 'https://fcm.googleapis.com/v1/projects/' . rawurlencode($a['project_id']) . '/messages:send', ['Authorization: Bearer ' . $t, 'Content-Type: application/json; charset=utf-8'], json_encode($ileti, JSON_UNESCAPED_UNICODE), 10);
+    $GLOBALS['ik_fcm_son'] = ['kod' => $kod, 'govde' => mb_substr((string)$govde, 0, 400, 'UTF-8')];
     if ($kod === 400 && stripos($govde, 'INVALID_ARGUMENT') !== false && stripos($govde, 'token') === false) return 400; // ileti hatası: token silinmesin
     return $kod;
 }
