@@ -1,0 +1,16 @@
+node_modules/
+mobil/android/app/google-services.json
+mobil/ios/App/App/GoogleService-Info.plist
+mobil/android/app/build/
+mobil/android/.gradle/
+mobil/android/local.properties
+mobil/ios/App/Pods/
+mobil/ios/App/build/
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
+web/config/db.php
+web/config/fcm_servis.json
+web/storage/*.json
+web/uploads/

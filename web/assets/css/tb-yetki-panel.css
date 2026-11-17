@@ -1,0 +1,48 @@
+/* tb-yetki-panel.css — ortak "Yetkiler" penceresi (site teması değişkenleri) */
+.vyp-arka { position: fixed; inset: 0; z-index: 999994; background: rgba(8,10,20,.55); backdrop-filter: blur(3px); display: flex; align-items: flex-start; justify-content: center; padding: 56px 14px 20px; overflow-y: auto; font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; animation: vypGir .18s ease-out; }
+@keyframes vypGir { from { opacity: 0; } to { opacity: 1; } }
+.vyp { width: 100%; max-width: 860px; background: var(--bg-surface, #fff); color: var(--text-primary); border: 1px solid var(--border); border-radius: 20px; box-shadow: 0 24px 60px rgba(0,0,0,.35); animation: vypKutu .22s cubic-bezier(.2,.9,.3,1.2); }
+@keyframes vypKutu { from { transform: translateY(12px) scale(.98); opacity: 0; } to { transform: none; opacity: 1; } }
+.vyp-ust { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--border); }
+.vyp-ust h3 { margin: 0; font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+.vyp-ust h3 i { color: var(--accent); }
+.vyp-kapat { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-overlay); color: var(--text-secondary); cursor: pointer; font-size: 15px; }
+.vyp-govde { padding: 18px 22px 22px; }
+.vyp-not { font-size: 13px; line-height: 1.6; color: var(--text-secondary); background: var(--bg-overlay); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; margin: 0 0 16px; }
+.vyp-ornek { display: inline-block; font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; margin: 0 2px; }
+.vyp-ornek.d, .vyp-dugme.d em { background: var(--bg-hover); color: var(--text-muted); }
+.vyp-ornek.i, .vyp-dugme.i em, .vyp-cip.i { background: rgba(22,163,74,.14); color: #16a34a; }
+.vyp-ornek.e, .vyp-dugme.e em, .vyp-cip.e { background: rgba(244,63,94,.12); color: #e11d48; }
+.vyp-ekle { display: grid; grid-template-columns: 120px minmax(0,1fr) auto; align-items: start; gap: 8px; margin-bottom: 14px; }
+@media (max-width: 560px) { .vyp-ekle { grid-template-columns: 1fr 1fr; } .vyp-ekle-btn { grid-column: 1 / -1; } }
+.vyp select { height: 40px; border-radius: 11px; padding: 0 10px; font-size: 13px; font-family: inherit; border: 1px solid var(--border); background: var(--input-bg); color: var(--text-primary); min-width: 0; }
+.vyp-btn { height: 40px; padding: 0 16px; border-radius: 11px; font-size: 13.5px; font-weight: 700; font-family: inherit; cursor: pointer; border: 1px solid var(--border); background: var(--bg-overlay); color: var(--text-primary); display: inline-flex; align-items: center; gap: 7px; justify-content: center; }
+.vyp-btn-ana { background: var(--accent); border-color: var(--accent); color: #fff; }
+.vyp-liste { display: grid; gap: 10px; }
+.vyp-kart { border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; background: var(--bg-overlay); transition: box-shadow .3s; }
+.vyp-kart.vyp-yeni { box-shadow: 0 0 0 2px var(--accent); }
+.vyp-varsayilan { border-style: dashed; }
+.vyp-kart-ust { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.vyp-kart-ust b { flex: 1; min-width: 0; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vyp-tip-etk { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; color: var(--accent); background: var(--accent-glow, rgba(99,102,241,.15)); padding: 3px 8px; border-radius: 999px; }
+.vyp-sil { width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; }
+.vyp-sil:hover { color: #e11d48; border-color: #e11d48; }
+.vyp-yetkiler { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px; }
+.vyp-yetki { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-surface, #fff); font-size: 12.5px; text-align: left; font-family: inherit; color: var(--text-primary); }
+.vyp-yetki span { min-width: 0; }
+.vyp-yetki em { font-style: normal; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; color: var(--text-muted); }
+.vyp-dugme { cursor: pointer; transition: border-color .15s, transform .08s; }
+.vyp-dugme:hover { border-color: var(--accent); }
+.vyp-dugme:active { transform: scale(.98); }
+.vyp-dugme:disabled { opacity: .6; }
+.vyp-bos { font-size: 13px; color: var(--text-muted); padding: 10px 2px; }
+.vyp-onizle { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+.vyp-onizle label { font-size: 13px; font-weight: 700; margin-right: 8px; }
+.vyp-onizle select { max-width: 100%; }
+.vyp-sonuc { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.vyp-cip { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+
+.vyp-aramali { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 6px; min-width: 0; }
+.vyp-aramali input { height: 40px; border-radius: 11px; padding: 0 10px; font-size: 13px; font-family: inherit; border: 1px solid var(--border); background: var(--input-bg); color: var(--text-primary); min-width: 0; box-sizing: border-box; }
+.vyp-aramali-satir { display: inline-grid; width: min(560px, 100%); vertical-align: middle; }
+@media (max-width: 560px) { .vyp-aramali { grid-template-columns: 1fr; } }

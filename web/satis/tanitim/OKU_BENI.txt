@@ -1,0 +1,65 @@
+TURKUAZ BİLEŞİM — TANITIM SİTESİ
+=================================
+Ürünü tanıtan, 15 günlük ücretsiz deneme talebi toplayan, SEO'su hazır ayrı bir web sitesi.
+Veritabanı gerekmez; ayarlar ve talepler data/ klasöründe JSON olarak tutulur.
+
+GEREKSİNİM
+• PHP 7.4 veya üstü (mbstring açık), Apache (.htaccess için mod_rewrite). data/ klasörüne yazma izni.
+
+KURULUM (5 dakika)
+1) Tüm dosyaları sitenin ana klasörüne (ya da bir alt klasöre) yükleyin.
+2) data/ klasörünün yazılabilir olduğundan emin olun (izin 755 / sahibi web sunucusu kullanıcısı).
+3) Tarayıcıda  siteniz.com/yonetim/  adresini açın. İlk açılışta kurulum kodu istenir:
+   FTP/dosya yöneticisi ile  data/kurulum_kodu.txt  dosyasını açıp içindeki kodu yazın, kullanıcı adı ve şifre (en az 10 karakter) belirleyin.
+   (Kod dosyası kurulumdan sonra kendiliğinden silinir; kodu yalnızca sunucuya erişimi olan kişi okuyabilir.)
+4) "Site ayarları"nı doldurun (aşağıya bakın) ve kaydedin. Değişiklikler sitede hemen görünür.
+
+SİTE AYARLARI (yonetim → Site ayarları)
+• Genel ve SEO: başlık (title), açıklama (meta description), anahtar kelimeler, site adresi, paylaşım görseli, deneme gün sayısı.
+  Karakter sayaçları ideal uzunlukta yeşile döner. En üstteki "SEO kontrol listesi" eksikleri gösterir.
+• Google ve izleme: Google Analytics 4 ölçüm kimliği (G-XXXXXXXXXX) girin; kod tüm sayfalara kendiliğinden eklenir.
+  Google Etiket Yöneticisi, Search Console doğrulaması, Bing doğrulaması ve Meta Piksel alanları da vardır.
+  "Çerez bandı" açıkken Analytics yalnızca ziyaretçi "Kabul et" derse çalışır (Google Consent Mode v2).
+• İletişim ve WhatsApp: WhatsApp numarası (905321112233 ya da 05321112233), hazır mesaj, telefon, e-posta, adres.
+  Numara girilince sitenin her yerinde WhatsApp düğmeleri ve sağ altta yüzen düğme görünür.
+  "Yeni talep bildirimi e-postası" doluysa form gönderilince size e-posta da gelir (sunucuda mail() açıksa).
+• Sosyal medya bağlantıları (Organization yapılandırılmış verisine de girer), gelişmiş alanda özel head/body kodu.
+
+TALEPLER (yonetim → Talepler)
+• Siteden gelen deneme talepleri listelenir: durum (yeni / arandı / denemede / müşteri oldu / ilgisiz), not, tek tıkla arama, e-posta, WhatsApp.
+• Reklam etiketi (utm_source vb.) ve hangi sayfadan geldiği kaydedilir. "CSV indir" ile Excel'e alınır.
+• Form korumaları: CSRF, gizli tuzak alan, hız sınırı (IP başına saatte 4 talep), süre kontrolü.
+
+NELER SEO İÇİN HAZIR
+• Her sayfada benzersiz title/description, canonical, hreflang (tr), Open Graph + Twitter kartı, robots meta.
+• JSON-LD yapılandırılmış veri: Organization, WebSite, SoftwareApplication (ücretsiz deneme teklifi + özellik listesi), FAQPage, BreadcrumbList.
+• Tek ana sayfa + 6 ayrı konu sayfası (/izin-takip-programi, /mesai-puantaj-programi, /personel-giris-cikis-takip,
+  /personel-ozluk-dosyasi-programi, /personel-bildirim-sistemi, /ik-yonetim-yetki-raporlama). Her biri kendi anahtar kelimesini hedefler.
+• Otomatik /sitemap.xml ve /robots.txt, yönetim ve veri klasörü arama dışı. Yazı tipleri kendi sunucunuzdan gelir (hızlı, dış istek yok).
+• Anlamlı başlık yapısı (tek h1), erişilebilir etiketler, mobil uyum, hareket azaltma tercihine saygı.
+
+GOOGLE'DA GÖRÜNMEK İÇİN YAPMANIZ GEREKENLER (SEO tek başına yetmez)
+1) Site ayarlarında "Site adresi"ni yazın (https://www.siteniz.com).
+2) search.google.com/search-console → Mülk ekle → "HTML etiketi" yöntemi → kodu "Google Search Console doğrulama kodu" alanına yapıştırın → Kaydedin → Doğrula.
+3) Search Console → Site haritaları → siteniz.com/sitemap.xml gönderin. Ana sayfa için "URL denetimi → Dizine eklenmesini iste" deyin.
+4) Aynısını bing.com/webmasters için yapın (isteğe bağlı).
+5) Google İşletme Profili açın, sosyal medya hesaplarını sitede bağlayın, sektör sitelerinden/rehberlerden bağlantı alın.
+   Sıralama birkaç hafta sürer ve rekabete bağlıdır; sıralama garantisi verilemez.
+
+METİNLERİ DEĞİŞTİRMEK
+• Özellik başlıkları, açıklamalar ve sık sorulan sorular: inc/icerik.php (düz metin; PHP bilmeniz gerekmez, tırnak içindeki yazıları düzenleyin).
+• Ana sayfa yapısı: index.php · konu sayfaları: konu.php · görünüm: assets/css/site.css · efektler: assets/js/site.js
+• Renkler site.css'in en üstünde (:root) tanımlıdır.
+
+YAYINA ALMADAN ÖNCE KONTROL EDİN
+• Sitedeki vaatler: "kredi kartı gerekmez", "taahhüt yoktur", "uygun bulmazsanız yükümlülüğünüz olmaz", "sizi arayalım" ifadeleri sizin işleyişinize uymalı.
+• gizlilik sayfasındaki aydınlatma metni genel bir şablondur; şirket unvanı/adresi eklenmeli ve hukuk danışmanınızca gözden geçirilmelidir.
+• Sitede müşteri yorumu, rakam ya da logo uydurulmadı; gerçek müşteri yorumları olunca eklenmelidir.
+
+NGINX KULLANIYORSANIZ (Apache dışı)
+  location ~ ^/data/ { deny all; }
+  location = /sitemap.xml { rewrite ^ /sitemap.php last; }
+  location = /robots.txt { rewrite ^ /robots.php last; }
+  location = /manifest.webmanifest { rewrite ^ /manifest.php last; }
+  location = /gizlilik { rewrite ^ /gizlilik.php last; }
+  location / { try_files $uri $uri/ /konu.php?k=$uri; }   # /izin-takip-programi gibi adresler için ($uri baştaki / ile gelir; konu.php'de gerekirse trim edin)

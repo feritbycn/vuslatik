@@ -1,0 +1,11 @@
+Bu klasör, güncelleme paketleriyle gelen veritabanı değişiklikleri içindir.
+Her dosya (ör. 2026_11_01_yeni_sutun.php) bir kez, ad sırasıyla çalışır ve pf_migrasyon tablosuna işlenir:
+
+<?php
+return function (VDB $db, array $kurumlar) {
+    foreach ($kurumlar as $k) {            // $k: pf_kurumlar satırı
+        $db->kurum = (int)$k['id'];        // sorgular otomatik k{no}_ ön ekiyle çalışır
+        $db->query("ALTER TABLE ik_personel ADD COLUMN IF NOT EXISTS ornek VARCHAR(50) NOT NULL DEFAULT ''");
+    }
+    $db->kurum = 0;
+};

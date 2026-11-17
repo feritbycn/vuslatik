@@ -1,0 +1,461 @@
+TURKUAZ BİLEŞİM İK — ÇOK KURUMLU ÜRÜN (kurulum ve kullanım notları)
+===========================================================
+Bu paket tek başına çalışan, ayrı girişli bir üründür: her kurum kendi verisiyle, tek veritabanında "kurum numarası"yla ayrılır.
+İçinde: İnsan Kaynakları (çok adımlı izin onayı, personel, belgeler, zimmet, puantaj, masraf, eğitim, performans, bordro),
+giriş-çıkış (kaydırarak giriş, konum/PIN/cihaz), SMS / e-posta / tarayıcı bildirimleri, sayfa içi yetkilendirme.
+Hesap kendi kendine açılmaz; kullanıcıları kurum yetkilisi ekler.
+
+GEREKSİNİM
+  PHP 8.0+ (mysqli, mbstring, zip, fileinfo, openssl, curl) · MariaDB 10.3+ / MySQL 8 · HTTPS önerilir (Web Push için şart) · Apache (.htaccess) ya da eşdeğer kural
+
+KURULUM (sihirbazlı)
+  1) Dosyaların hepsini sunucuya yükleyin (ik.php, giris.php, platform.php, config/, assets/ …). uploads/, storage/ ve config/ klasörleri yazılabilir olsun.
+  2) Boş bir veritabanı açın. Tarayıcıda siteyi açın: kurulum sihirbazına otomatik yönlenir (ya da kurulum.php).
+     Adım 1: gereksinim kontrolü + veritabanı bilgileri (bağlantı denenir, config/db.php otomatik yazılır).
+     Adım 2: A) Yeni kurulum: site adı + ilk platform yöneticisi    B) Başka sunucudan taşı: eski sunucunun yedek .zip dosyasını yükleyin.
+     Bitince config/kurulum.kilit oluşur, sihirbaz bir daha açılmaz (kurulum.php dosyasını silebilirsiniz).
+  3) platform.php → giriş yapın → "Kurumlar → Yeni kurum": kurum adı + kurum yetkilisi. Ekranda gösterilen giriş adresi, kullanıcı adı ve
+     GEÇİCİ ŞİFRE yetkiliye iletilir (şifre yalnızca bir kez gösterilir; kişi ilk girişte kendi şifresini belirler).
+  Tablolar kurum oluşturulurken kendiliğinden kurulur (k{kurum_no}_… ön ekiyle). Elle SQL gerekmez.
+
+BAŞKA SUNUCUYA TAŞIMA
+  Eski sunucu: platform.php → Yedek ve güncelleme → "Tam yedek indir" (tüm kurumların verisi + yüklenen dosyalar, tek .zip).
+  Yeni sunucu: uygulama dosyalarını yükleyin → kurulum sihirbazında veritabanını girin → "B) Başka sunucudan taşı" ile .zip'i yükleyin.
+  (Yedek zaten kurulu bir sistemde de platform panelinden "Yedekten geri yükle" ile yüklenebilir; mevcut veriler değiştirilir.)
+
+GÜNCELLEME (kodu bir yerde geliştirip diğer kurulumlara aktarma)
+  Güncelleme yaptığınız ana kurulumda surum.json içindeki "surum" değerini artırın. Veritabanı değişikliği varsa migrasyon/ klasörüne
+  tarih_ad.php dosyası ekleyin (örnek: migrasyon/OKU.txt); her migrasyon her kurulumda yalnızca bir kez, kurum kurum çalışır.
+  Yol 1 — Paket: ana kurulumda Yedek ve güncelleme → "Güncelleme paketi indir"; diğer kurulumda aynı bölümden "Paketi uygula".
+  Yol 2 — Doğrudan: ana kurulumun "kaynak adresi" ve "anahtarı" diğer kurulumda kaydedilir; ardından tek tıkla "Kaynaktan güncelle".
+  Not: Pakette config/db.php YOKTUR (sihirbaz üretir); dosyaları sunucuya kopyalarken mevcut db.php'nin silinmesi/ezilmesi bağlantıyı koparır.
+  Güvenlik: config/db.php, uploads/, storage/ asla ezilmez; paket yolları/uzantıları/PHP sözdizimi yazmadan önce denetlenir; ezilen dosyalar
+  storage/yedek_*.zip içine yedeklenir; hata olursa veriler etkilenmez. Güncelleme sonrası her kurumun şeması otomatik tamamlanır.
+
+ROLLER
+  Platform yöneticisi  platform.php — kurumları/yetkililerini/site ayarlarını yönetir (kurum verisine girmez; gerekirse "Aç" ile destek girişi yapar, kayıt altına alınır)
+  Kurum yöneticisi     (rol: kurucu) kurumdaki TÜM yetkiler; Kullanıcılar ve Yetkiler bölümlerinden başkalarına yetki dağıtır
+  Yetkili              ek izinleri Yetkiler penceresinden ayarlanır (varsayılan: tüm personeli görme, izin onayı vb.)
+  Personel             kendi kartı, izin talebi, giriş-çıkış
+  Platform yöneticisi bir kurum yetkilisini "Kurumlar → Yetkili" ile değiştirir/atar veya geçici şifre üretir.
+
+PLATFORM PANELİ (platform.php)
+  Genel bakış · Kurumlar (ekle/düzenle, logo, kullanıcı sınırı, askıya al/etkinleştir, kalıcı sil, yetkili ata, şifre sıfırla, destek girişi)
+  Site ayarları: Genel (ad, slogan, destek, alt bilgi) · Logo ve favicon (+ paylaşım görseli) · SEO (title, description, anahtar kelime, robots,
+  canonical, yazar, Google Analytics, ek <head> kodu, arama sonucu önizlemesi) · Giriş sayfası (başlık, efekt, ikinci renk, özellik listesi,
+  kurum seçimi biçimi) · Sistem (bakım modu, hatalı giriş hakkı) · Platform yöneticileri · İşlem kayıtları
+
+GİRİŞ SAYFASI (giris.php)
+  Efektli, modern; efekt: aurora / parçacık ağı / dalga / ışıklı ızgara / efektsiz (Site ayarları → Giriş sayfası).
+  Kurum seçimi: "Liste" (kurumlar kart olarak seçilir) ya da "Kod" (kullanıcı kurum kodunu yazar; müşteri listesi gizli kalır).
+  giris.php?kurum=KOD adresi kurumu önceden seçer (müşteriye bu adresi verebilirsiniz).
+  Güvenlik: hatalı denemede 15 dk kilit (IP + hesap), genel hata iletisi, oturum yenileme, CSRF, askıdaki kuruma giriş yok.
+
+KURUM İÇİ
+  ik.php → Yönetim → Kullanıcılar: kullanıcı ekle (boş şifre = geçici şifre üretilir), rol/görev/telefon/e-posta, şifre sıfırla, pasifleştir.
+  Kullanıcıların telefon/e-posta bilgisi SMS ve e-posta bildirimleri için gereklidir.
+  "Kullanıcı ekleme / düzenleme" izni Yetkiler penceresinden başkasına devredilebilir (devralan kişi kurum yöneticisi rolü veremez).
+  Kullanıcı sınırı: Platform → Kurumlar → Düzenle (0 = sınırsız).
+
+İZİN ONAY AKIŞI VE BİLDİRİMLER (kurum yöneticisi ayarlar)
+  İK → Yönetim → "Bildirim kanalları": SMS sağlayıcı (NetGSM / İleti Merkezi / özel HTTP) ve SMTP bilgileri; "Test" düğmeleri; logo/imza/renk önizlemesi.
+  İK → Yönetim → "İzin onay akışı": birim seçin → onaycıları sırayla ekleyin → her biri için Site / SMS / E-posta.
+  Sonuçta talep sahibine "İzniniz onaylandı" gider. Her kurumun ayarı ve gönderim kaydı birbirinden ayrıdır.
+  Site kapalıyken bildirim: kullanıcı zil → "Bildirimleri aç" demelidir (Web Push yalnızca HTTPS; iPhone'da Ana Ekrana ekleyin).
+  NOT: SMS sağlayıcı API ayrıntıları hesabınızla doğrulanmalıdır; sorunda "Son gönderimler" tablosundaki hata metnine bakın.
+
+VERİ AYRIMI (teknik)
+  vdb.php her SQL sorgusunu çalıştırmadan önce kurum tablolarına "k{no}_" ön eki ekler (tırnak/yorum içine dokunmaz). Platform tabloları pf_ ile başlar.
+  Yüklenen dosyalar uploads/k{no}/… altında tutulur (belge/bordro klasörleri tarayıcıdan kapalıdır). Kurum silinince tabloları ve dosyaları da silinir.
+  Yeni bir tablo eklerseniz adını vdb.php içindeki TABLOLAR listesine de ekleyin.
+
+YEDEKLEME
+  Tek veritabanı + uploads/ klasörünü yedekleyin. Tek kurumu çıkarmak için: mysqldump ... $(mysql -N -e "SHOW TABLES LIKE 'k7\_%'")
+
+BİLİNEN SINIRLAR
+  • Simgeler Font Awesome'dan (cdnjs) yüklenir; internet erişimi olmayan ortamda dosyayı yerele alın (header.php, giris.php, platform.php).
+  • "Şifremi unuttum" yoktur; kurum yöneticisi/platform yöneticisi geçici şifre üretir.
+  • Doğum günü bildirimi bu pakette yok (iş yıldönümü hatırlatmaları var).
+
+
+TOPLU PERSONEL İÇE AKTARMA
+- İK → Personel veya Kullanıcılar sayfası → sağ üstte "İçe aktar". Şablonu (CSV) indirin, doldurun, yükleyin (.csv veya .xlsx).
+- Sütunlar: Ad Soyad (zorunlu), Kullanıcı Adı, Rol (personel/yetkili), Görev, Telefon, E-posta, Departman, Unvan,
+  İşe Giriş, Doğum Tarihi, TC Kimlik, Yıllık İzin Hakkı, SGK No. Tarih: 15.03.2022 veya 2022-03-15.
+- Kullanıcı adı boşsa addan üretilir. Her kişiye geçici şifre verilir; liste yalnızca bitişte gösterilir (CSV indirin).
+- Hatalı satırlar atlanır, nedeni listelenir. Tek seferde en fazla 1000 satır.
+
+
+AVANS TALEPLERİ
+- İK → Avans talepleri: personel tutar/taksit/tarih/gerekçe ile talep eder; yetkili onaylar veya gerekçeyle reddeder, talep sahibine bildirim gider.
+- Yetkiler sayfasında "Personel avans taleplerini onaylama" ve "Menü: Avans talepleri" izinleri vardır (varsayılan: yetkili rolü onaylar).
+- Tablo (ik_avanslar) ilk açılışta kendiliğinden oluşur; güncellemede ek işlem gerekmez.
+
+
+BİRİM ATAMA
+- İK → Personel → "Seç": kişileri işaretleyin (veya "Listedekilerin hepsini seç") → "Birime ata". Var olan birimi seçebilir ya da yeni birim oluşturabilirsiniz.
+- Yeni kullanıcı eklerken "Birim" alanı vardır; CSV içe aktarmada "Departman" sütunu birim olarak işlenir.
+- Birimler, İzin onay akışındaki departman listesiyle ortaktır.
+
+ANA PANEL
+- İK yetkilisi ana panelde izin, masraf ve avans taleplerini görür, tek tıkla onaylar/reddeder.
+- "Paneli özelleştir" ile doğum günleri, belgeler, birim dağılımı vb. kutular açılıp kapatılır (tercih tarayıcıda saklanır).
+
+
+KULLANIM SÜRESİ (LİSANS)
+- Platform → Kurumlar → Düzenle → "Kullanım süresi": Sınırsız / 1 aylık / 1 yıllık / özel tarih. Süre dolmadan seçilirse mevcut bitişe eklenir (uzatma).
+- Kurum kartında "X gün kaldı" görünür. Bitişe 5 gün kala kurum yöneticisine panelde uyarı + günlük bildirim gider.
+- Süre bitince 5 gün ek süre tanınır (uyarı kırmızıya döner). Ek süre de bitince kurum otomatik askıya alınır:
+  giriş yapamaz, "kullanım süreniz sona erdi, süreyi yenileyin" uyarısı alır. Süre yenilenince hemen açılır; veriler silinmez.
+
+BİRİMLER
+- İK → Birimler: birim listesi, yeni birim, adını değiştirme, silme (boşsa), birime personel ekleme / çıkarma.
+
+KURUM LOGOSU
+- Yalnızca platform yöneticisi (Kurumlar → Düzenle → Kurum logosu) koyar. Kurum panelinde sol üstte ve tarayıcı sekmesinde görünür.
+
+KURUMU BAŞKA SUNUCUYA TAŞIMA (TEK KURUM PAKETİ)
+- Platform → Kurumlar → "Taşı": yalnızca o kurumun verisi + dosyaları + uygulama kodu tek zip olarak iner.
+- Yeni sunucuda zip'i açın, siteye girin: sadece veritabanı bilgileri sorulur, "Kurumu kur" ile bitirilir. Platform yöneticisi / kurum seçimi / platform paneli yoktur; giriş sayfası doğrudan o kurumu açar.
+- Kurulumdan sonra paketteki veri.sql sunucudan silinir. config/kurum.id dosyası "tek kurum" modunu belirler.
+
+
+GİRİŞTE KURUMU OTOMATİK BULMA / BENZERSİZ KULLANICI
+- Kullanıcı adı ve e-posta TÜM sistemde benzersizdir (kurum oluştururken, kullanıcı eklerken, içe aktarırken, düzenlerken kontrol edilir).
+- Giriş sayfasında kurum seçilmez: kullanıcı adı ya da e-postayı yazan kişi doğrudan kendi kurumuna ve yetkileriyle girer.
+  (Platform → Giriş sayfası → "Kurum seçimi": Otomatik / Liste / Kod.) Eski verilerde aynı ad iki kurumda varsa, giriş sırasında kurum sorulur.
+
+KURUM YEDEKLERİ (Platform → Kurum yedekleri)
+- Otomatik yedek: 1 / 2 / 3 / 5 / 7 / 10 / 14 / 30 günde bir ya da kapalı. Arka planda alınır, kullanıcıya bildirim gitmez.
+  Panele / kurum sayfalarına girişler zamanlayıcıyı tetikler; isterseniz sunucuda cron ile:  php kurum_yedek.php  (saatlik yeterli).
+- Her kurum için son yedek tarihi listelenir; "Hepsini şimdi yedekle" ve kurum bazında "Verileri yedekle" vardır. Yedekler storage/kurum_yedek/ altında .zip (veri + yüklenen dosyalar).
+- Geri yükleme (kurumu açıp "Geri yükle"): hangi tarihli yedek seçilir, sonra
+    • "Önceki veriler silinsin": kurum yedeğin haline döner.
+    • "Mevcut verilerin üzerine ekle": eksikler eklenir; aynı kayıt farklıysa "yedektekiyle değiştir / mevcudu koru" sorulur.
+  Her geri yüklemeden önce kurumun o anki hali otomatik yedeklenir. Karar beklerken ya da çalışırken işlem "Durdur" ile iptal edilir; canlı veriye dokunulmadan geçici tablolar silinir.
+- Başka sunucudan/eski bir yedek: kurumun yedek listesinde "İçe aktar" ile ekleyin; ya da "Yedekten kurum oluştur" ile kurum, yedekten yeniden kurulur.
+  Geri yüklenen kullanıcıların adı/e-postası başka kurumda kullanılıyorsa otomatik değiştirilir (rapor gösterilir).
+- Kurum içindeyken (Destek girişi) soldaki "Yedekler" sekmesinden aynı işlemler yapılır.
+- Kurum yetkilisi "Yedekler" sekmesinde yalnızca yedek tarihlerini görür ve "Geri yükleme talebi" oluşturur; talep platform panelinde (menüde rozetli) görünür ve
+  Platform → Kurum yedekleri → "Talep bildirimi e-postası / SMS telefonu" adreslerine bildirim gider (SMS, kurumun SMS ayarları hazırsa).
+- Not: kurum silinse bile yedekleri storage/kurum_yedek/ altında kalır (geri dönen kurum için).
+
+GİRİŞ ANİMASYONU
+- Giriş sayfası ilk ziyarette ~5 sn'lik kısa bir tanıtım animasyonu oynatır (kodla çizilir, ek dosya/video yok: ~5 KB). "Atla", tıklama ya da Esc ile geçilir.
+  Tekrar izlemek için adrese ?intro=1 ekleyin; kapatmak için Platform → Giriş sayfası → "İlk ziyarette tanıtım animasyonunu göster".
+- Tüm sayfaların altında "Tüm hakları saklıdır, Turkuaz Bileşim" yazar.
+
+GÜVENLİK NOTLARI
+- Yedekten dönen dosyalar yalnızca izinli türlerde (görsel, pdf, ofis, csv, txt) açılır; betik türleri ve .htaccess asla geri yazılmaz. Yedek SQL'i yalnızca beklenen biçimdeki CREATE/INSERT deyimlerini çalıştırır.
+- HTTPS üzerinde HSTS başlığı gönderilir. Üretimde siteyi mutlaka HTTPS ile açın ve kurulum.php dosyasını silin.
+- Güncelleme kaynağı anahtarı adres satırında gider; yalnızca güvendiğiniz kendi sunucunuzu kaynak gösterin ve anahtarı düzenli yenileyin.
+- Giriş denemesi sınırı IP + hesap bazlıdır. Ters vekil (proxy) arkasındaysanız tüm kullanıcılar aynı IP görünebilir; sunucu tarafında gerçek IP ayarını yapın.
+
+E-POSTA TASARIMI VE PDF
+- Giden e-postalar sade kurumsal şablonla gider: üstte kurum rengi + logo (logo yoksa firma adı), "Merhaba {ad}", başlık, bilgi tablosu, buton, imza.
+  Logo/renk/imza: İK → Bildirim kanalları → "E-posta görünümü ve imza".
+- İzin bilgisinde Başlangıç, Bitiş ve "İşe dönüş tarihi" (bitişten sonraki ilk iş günü; Cumartesi-Pazar atlanır, resmi tatiller hesaba katılmaz) yer alır.
+- PDF eki: her e-postaya aynı bilgilerin PDF kopyası ekli gider (ayar: "PDF eki", varsayılan açık). PDF'ler ek kütüphane gerektirmez; logo için PHP GD eklentisi gerekir (yoksa firma adı yazılır).
+- İzin kartında "PDF" düğmesiyle izin belgesi (durum, onaylayan, onay notu dahil) istenildiği an indirilir.
+
+GİRİŞ-ÇIKIŞ TAM EKRAN TEMASI
+- Kaydırmalı giriş-çıkış sayfası tam ekran açılır (assets/css/tb-giris-tam.css, assets/js/tb-giris-tam.js).
+- Giriş öncesi mavi-mor, giriş yapılınca yeşil-turkuaz arka plan. Üstte selam, tarih, canlı saat; sağda tam ekran / geçmiş / kayıtlar / küçült düğmeleri.
+- Başka hiçbir sayfa değişmedi.
+- Ana ekrana kısayol: giriş-çıkış üst çubuğundaki telefon düğmesi (giris_manifest.php). Chrome/Android'de doğrudan yükleme penceresi açılır; desteklemeyen tarayıcıda (iPhone Safari vb.) adım adım yönerge penceresi çıkar. Uygulama olarak açılmışsa düğme görünmez. HTTPS gerekir.
+- Giriş-çıkış ekranı (assets/js/tb-giris.js, assets/css/tb-giris.css) kullanıcının gönderdiği "giris" dosyalarıyla birebir aynıdır (Vuslat adları TB'ye çevrildi). Parmak izi / Face ID (WebAuthn) çalışır: giris_webauthn.php, ayar 'Her girişte parmak izi / Face ID iste' (İK > Giriş-çıkış > Ayarlar), HTTPS gerekir; personel ilk kaydırmada cihazını kaydeder. Giriş fotoğrafı özelliği yoktur.
+- Giriş-çıkış: siteye girişte ilk dokunuşta otomatik tam ekran (tarayıcının "Tam ekrandan çıkmak için…" uyarısı tarayıcıya aittir, site gizleyemez; ana ekran kısayolundan açılınca çıkmaz). PIN kapalıysa "PIN oluştur" bağlantısı gizlenir. Çıkış kaydırması hazır konumu kullanarak ~1 sn'de tamamlanır.
+- E-posta görünümü: 1. ve 2. renk (gradyan), hazır renk çiftleri ve kaydetmeden görünen canlı önizleme (İK > Kanallar > E-posta görünümü). Şeffaf logo doğrudan banda oturur; PDF üst bandı da aynı gradyanı kullanır.
+
+--- Giriş engeli kaldırma (platform) ---
+* Platform paneli → Platform yöneticileri → altta "Giriş engelleri": 6+ hatalı denemeyle (15 dk) engellenen hesap/IP'ler listelenir; "Tüm engelleri kaldır" ile hemen açılır.
+  Panele giremiyorsanız (kilitliyken) veri tabanında: DELETE FROM pf_giris_deneme;  Şifre unutulduysa pf_yoneticiler.sifre alanına password_hash ile üretilmiş bcrypt yazılır.
+
+--- İzin geçmişini Excel'den içe aktarma ---
+* Kullanıcılar sekmesi → "İzin aktar": "İzin Raporları" Excel'i (Ad, Soyad, İzin Başlangıç/Bitiş Tarihi, Kullanılan Gün, İzin Türü).
+  Kişiler ad soyada göre eşleşir (büyük/küçük harf ve Türkçe karakter farkı önemsiz); izinler ONAYLI eklenir → izin takvimi, izin listeleri ve yıllık izin bakiyesine yansır.
+  Saatli (kısmi gün) izinler yarım gün olarak, saat aralığı açıklamada tutulur. Aynı dosya tekrar yüklenirse çift kayıt oluşmaz. Bulunamayan kişiler listelenir (önce Personel içe aktarmayla ekleyin).
+  Türler: Yıllık, Mazeret, Ücretsiz, Babalık, Evlilik, Vefat, Hastalık(Raporlu) → eşleşir; tanınmayan tür "İdari izin" olur.
+
+--- Personel Excel içe / dışa aktarma ---
+* Kullanıcılar sekmesi → "İçe aktar": .xlsx / .csv. Başlıklar otomatik tanınır (Ad, Soyad, Kimlik Numarası, İşe Başlama / Pozisyon Başlama / İşten Ayrılma Tarihi,
+  Çalışma Şekli, Departman (Birim), Unvan, Çalışma Durumu…); tanınmayan sütun "Sütun eşleştirme" ile elle seçilir. BÜYÜK HARFLİ adlar düzeltilir.
+* Aynı T.C. kimlik (T.C. yoksa aynı ad soyad) zaten kayıtlıysa satır atlanır; "Pasif" / işten ayrılma tarihi dolu olanlar pasif eklenir.
+* "Dışa aktar": aynı sütunlarla .xlsx indirir (içe aktarmada tekrar kullanılabilir). Excel kütüphanesi assets/js/vendor/xlsx.full.min.js (yerel).
+
+DUYURU, DOSYA PAYLAŞIMI VE ANKET
+- İK panelinde "Duyuru ve paylaşım" grubu: Duyurular, Dosyalar, Anketler.
+- Yönetim yetkisi: ik_duyuru_yonet (Yetkiler panelinden verilir; yetkili rolünde varsayılan açıktır). Menü: ik_menu_duyuru.
+- Duyuru yayınlarken kanal seçilir: Site / E-posta / SMS. E-posta ve SMS için Bildirim kanalları ayarlanmış olmalıdır.
+- Hedef kitle: Herkes veya seçili birim(ler) ve/veya kişiler.
+- Dosyalar: PDF ve yaygın ofis/resim/arşiv türleri, en fazla 25 MB. Her dosya için "kimler görsün" ve "kimler indirsin" ayrı seçilir. Dosyalar özel klasörde tutulur, yalnız yetki kontrolüyle indirilir.
+- Anket: tek seçim, çoklu seçim, puan, açık uçlu; anonim seçeneği, sonuç görünürlüğü, bitiş tarihi, CSV dışa aktarma.
+- Okundu takibi ve "Okudum, anladım" onayı bulunur.
+
+RAPORLAR, MESAİ, RESMÎ TATİLLER, SAYFA ERİŞİMİ, SİTE ÖZELLİKLERİ
+- Raporlar (menü: Raporlama): Giriş-çıkış ve geç kalma · İzin kullanımı · Avans · Mesai. Tarih aralığı, birim/kişi, sıralama, sütun ve seçenekler seçilir;
+  önizleme tablo / grafik / ikisi birden gösterilir; PDF ve CSV indirilir. Yetki: ik_rapor_gor (yetkili rolünde varsayılan açık).
+- Mesai: personel kendi mesaisini bildirir (yöneticiye onaya gider); ik_mesai_yonet yetkisi olanlar personel adına ekler, onaylar/reddeder.
+  Tarih hafta sonuna ya da resmî tatile (bayram vb.) denk gelirse kayıt otomatik o türde işaretlenir; raporlarda ve PDF'te vurgulanır.
+- Resmî tatiller: sabit günler + 2024-2030 Ramazan/Kurban Bayramı tarihleri yerleşiktir. Bu aralığın dışındaki bayramları ya da idari izin/köprü günlerini
+  Mesai > "Tatil günleri" ekranından ekleyin (yarım gün seçeneği arife içindir).
+- Ana panelde "Bugün kimler?" kartı: doğum günleri, şu an izinde olanlar (dönüş tarihleriyle), yakında izne çıkacaklar, yaklaşan resmî tatiller, iş yıldönümleri.
+- Sayfa erişimi (Yönetim, yalnızca kurum yetkilisi): her sayfa için "personel" ve "yetkili" rollerine tek anahtarla izin verilir/kapatılır; sunucuda da uygulanır.
+  Kişiye/göreve özel kurallar için "Yetkiler" penceresi kullanılır.
+- Site özellikleri (menünün en altı, Yardım): tüm özelliklerin açıklamalı rehberi.
+- Yeni tablolar: ik_mesailer, ik_tatiller (ilk açılışta kendiliğinden oluşur).
+
+GİRİŞ-ÇIKIŞ → İK BİLDİRİMLERİ: yeni cihaz onay bekliyor, mükerrer (başka kişide de kayıtlı / ortak) cihaz, reddedilmiş cihaz denemesi, şüpheli konum, cihaz saati farkı. 'Giriş-çıkış yönetimi' yetkisi olanlara zilden gider (aynı olay 6-24 saat tekrarlanmaz).
+
+GİRİŞ BİLGİSİ SMS'İ + BENİ HATIRLA
+- Kullanıcılar sayfası: satırdaki SMS düğmesi (tek kişi) ve "SMS ile giriş bilgisi" (toplu). Her kişiye adres + kullanıcı adı + yeni geçici şifre gider; SMS gitmezse eski şifre değişmez. SMS ayarı (Bildirim kanalları) gerekir.
+- Giriş sayfasında "Beni hatırla" (varsayılan açık): 90 gün oturum açık kalır (pf_beni_hatirla tablosu otomatik oluşur). Çıkış yapınca, şifre sıfırlanınca veya kişi pasifleştirilince o kişinin kalıcı oturumları kapanır.
+
+ORGANİZASYON SEKMESİ (personel kartı)
+- Kartta "Organizasyon": yönetici, astlar (ekip), yönettiği birimler ve yukarıdan aşağı kariyer haritası. Yönetici/ast/birim atamak için "Personel düzenleme" yetkisi gerekir (görmek için personel görme yetkisi ya da kendi kartı).
+- Yönetici atamasında döngü engellenir (kişi kendi ekibinden birini yönetici yapamaz). İzin akışındaki "yönetici" adımı bu atamayı kullanır. Yeni tablo: ik_birim_yoneticileri (otomatik oluşur).
+- Organizasyon sekmesinde 11 görünüm var (Profil sandviç [varsayılan], Kartlar, Akan ağaç, Yatay ağaç, Yörünge, Onay yolculuğu, Yetki merdiveni, Birim haritası, Açılır ağaç, Yetki matrisi, Ekip duvarı). Açılır menüden seçilir; "Varsayılan yap" ile kişiye özel kaydedilir (ik_ayarlar: org_gorunum_u{kullanıcı}).
+
+── Onay zinciri görünümleri + Birim müdürü ──
+• İK > İzin onay akışı: sağ üstteki açılır menüden görünüm seçilir (Dikey zaman çizgisi, Avatar hattı, Metro hattı,
+  Kompakt hap, Koyu neon, Klasik liste). Seçim kullanıcıya özeldir, otomatik kaydedilir (ik_ayarlar: akis_gorunum_u{id}).
+  "Koyu neon" açık temada pastel/parıltılı, koyu temada gece neonu olarak görünür. Yeni dosya: assets/css/tb-ik-akis.css.
+• İK > Birimler: birim kartında "Müdür: …" görünür. Birime tıklayınca "Müdür ata / değiştir" ile isim aranarak müdür seçilir
+  (birden fazla seçilebilir). Veri ik_birim_yoneticileri tablosundadır (personel kartındaki Organizasyon sekmesiyle ortaktır).
+  Birim adı değişince müdür kaydı taşınır, birim silinince kaldırılır. Atanan kişiye bildirim gider.
+• Birim müdürü atanınca birimdeki personelin "bağlı olduğu yönetici" alanı da güncellenir (yalnız yöneticisi boş olanlar ya da eski müdüre bağlı olanlar;
+  ara yöneticiler ve döngü oluşturacak kişiler değişmez). Birime sonradan eklenen, yöneticisi olmayan kişiye müdür otomatik yönetici olur.
+• İzin onay akışı görünümü varsayılan: Metro hattı.
+
+--- Süre mesajları ve kurum listesi (platform paneli) ---
+* Kurumlar: filtre çipleri (Tümü / Aktif / Askıda / Süresi azalan ≤10 gün / Süresi dolan / Süre bitti / Sınırsız), sıralama, çoklu seçim ve "Toplu mesaj gönder" (SMS + e-posta, hazır metin, {kurum} {kalan} {tarih} alanları).
+* Süre mesajları sekmesi: otomatik mesajı aç/kapat, kaç gün kala gönderileceği (varsayılan 10, 3), süre bitince de gönder, metin şablonları, "Şimdi tara ve gönder", son gönderim kayıtları.
+* SMS/e-posta, seçtiğiniz "Gönderen kurum"un Bildirim kanalları ayarlarıyla gider (platformun kendi SMS/SMTP ayarı yoktur). Önce o kurumda SMS sağlayıcı / SMTP tanımlayın.
+* Her kurum için aynı mesaj (kurum+tür+bitiş tarihi) yalnızca bir kez gider; süre uzatılırsa yeniden başlar. Başarısız olan 6 saat sonra tekrar denenir.
+* Tarama panel/kurum girişlerinde saatte en fazla bir kez çalışır. Kimse girmese de çalışması için cron: 0 * * * * php /yol/platform_mesaj.php
+* Yedek ve güncelleme, İşlem kayıtları (arama + filtre) sekmeleri yenilendi.
+* Kurum oluştururken/düzenlerken Kullanım süresi: 'Deneme sürümü (15 gün)' seçeneği eklendi; kartta Deneme rozeti ve filtre çipi var. Süre bitiminde mesaj/askıya alma diğer süreler gibi çalışır.
+* İzin talebi geri çekilince kartta 'Talep geri çekildi' bandı, soluk/üstü çizili görünüm ve tarih; durum etiketi 'Geri çekildi'.
+* İzin talebi: onaycı talebi açan kişinin kendisiyse o adım atlanır (kendi talebini onaylayamaz). Akış yoksa 'izin onaylama' yetkililerine site + e-posta gider; hiç yetkili kalmazsa talep otomatik onaylanır ve kullanıcıya söylenir.
+* Şifre sıfırlayınca açılan pencerede 'Kişiye gönder: SMS / E-posta / İkisi de'; toplu şifre gönderiminde kanal seçimi (SMS, e-posta, ikisi). Hiçbir kanaldan gitmezse eski şifre değişmez. E-posta için Bildirim kanalları'nda e-posta tanımlı olmalı. Giriş ekranlarında kullanıcı adı otomatik küçük harfe çevrilir.
+* Şifre/giriş bilgisi pencerelerinde yeşil WhatsApp düğmesi (wa.me ile mesaj hazır açılır; telefon yoksa görünmez). Kurum yetkilisi bilgilerinde de aynı.
+
+──────────────────────────────────────────────
+TOPLU MESAİ EKLEME (İK → Mesai → "Toplu ekle")
+──────────────────────────────────────────────
+• Seçili personele ya da "Tümünü seç" ile herkese (aktif) mesai eklenir; kayıtlar doğrudan ONAYLI girilir.
+• İki yöntem: "Süre ekle" (örn. 5 saat; başlangıç saati isteğe bağlı, varsayılan 18:00) veya
+  "Saat aralığı" (kaçtan kaça). Tek tarih ya da tarih aralığı (en fazla 32 gün) seçilebilir.
+• "Hafta sonu ve resmî tatil günlerini de dahil et" kapatılırsa yalnız normal günler işlenir.
+• Aynı kişi/gün/saatte kayıt varsa atlanır; sonuçta eklenen ve atlanan sayısı gösterilir.
+• Her personele tek bildirim gider. Yetki: "Mesai yönet" (ik_mesai_yonet).
+
+──────────────────────────────────────────────
+VEKİL (PROXY) SUNUCU – kurum dosyalarını başka hostinge taşıma
+──────────────────────────────────────────────
+• Platform paneli → Kurumlar → kurum kartı → "Sunucu / Vekil" ile kurum için 2 dosyalı paket (ZIP) üretilir:
+  index.php (vekil) + vekil.anahtar.php (yalnız kurum kodu + anahtar) + .htaccess.
+• Uzak hostingde veri, veritabanı bilgisi, uygulama kodu YOKTUR. Tüm istekler HMAC imzalı olarak
+  ana sunucuya iletilir; veriler yalnız ana sunucudaki veritabanına yazılır.
+• Uzak kurum yalnızca vekil alan adından giriş yapabilir; ana adresten girişi kapalıdır.
+• Dosyalardan biri silinir/değiştirilirse ya da dosya ikinci bir sitede kullanılırsa: o sunucunun erişimi
+  durdurulur, Platform panelinde uyarı çıkar; yönetici "Onayla" veya "Engelle" der.
+• VERİ TABANI UZAKTA (isteğe bağlı): Sunucu / Vekil penceresindeki "Veri tabanı" bölümünde vekil sunucudaki MySQL bilgileri girilir → "Test et" → "Verileri taşı".
+  Taşıdıktan sonra o kurumun TÜM veri tabanı işlemleri (okuma/yazma) uzak MySQL'e gider; yüklenen DOSYALAR kopyalanmaz, ana sunucuda kalır; kod ana sunucuda kalır.
+  "Yedek al" düğmesi: veri tabanı hangi taraftaysa DİĞER taraftaki kopyayı günceller (ana → vekil MySQL ya da vekil MySQL → ana); kurum çalışmaya devam eder.
+  OTOMATİK YEDEK: aynı pencerede "Otomatik yedek" (kapalı / her saat / 3 / 6 / 12 saat / günlük) seçilir; aynı yönde kopya zamanı geldikçe kendiliğinden güncellenir.
+  Panel/kurum sayfası girişleriyle tetiklenir; kimse girmese de çalışması için cron:  0 * * * * php /yol/platform_vekil.php  (her seferinde tablolar baştan kopyalanır, büyük veride aralığı uzun tutun).
+  "Ana sunucuya geri al" ile veriler geri kopyalanır. Uzak MySQL'in ana sunucunun IP'sinden bağlantıya izin vermesi gerekir (uzak MySQL / Remote MySQL ayarı); her sorgu ağdan geçtiği için sayfalar biraz yavaşlayabilir.
+  Veri tabanı uzaktayken "yedekten geri yükle" kapalıdır (önce geri alın). Parola ana veri tabanında şifreli saklanır.
+• Kurum listesinde her kurumda "Bu sunucu" / "Uzak sunucu" etiketi vardır; filtre: Uzak / Uyarılı.
+• Gereksinim: uzak hostingde PHP 7+, curl, https; iki sunucunun saati uyumlu (±5 dk).
+  Nginx ise tüm isteklerin index.php'ye düşmesi için try_files gerekir.
+• DÜRÜST NOT: dosya + anahtarı elinde tutan kişi vekili kullanabilir; değişiklik/ikinci kullanım tespiti
+  caydırıcılık ve iptal (anahtar yenileme) içindir, kopya korumasını mutlak garanti etmez.
+
+──────────────────────────────────────────────
+SUNUCU KOPYASI / TAŞIMA ONAYI
+──────────────────────────────────────────────
+• Güncellemeden sonraki ilk istekte çalışan sunucu "Çalışıyor" olarak kaydedilir (sunucu adı + uygulama klasörü).
+• Uygulama dosyaları başka bir sunucuya komple kopyalanırsa kopya kendini "Onay bekliyor" olarak kaydeder.
+  Aynı veritabanını kullanıyorlarsa iki sunucu da hemen pasif olur. Veritabanı yedeği kullanılmışsa kopya eski sunucuya
+  imzalı bildirim gönderir (ulaşabilirse eski sunucu da pasif olur).
+• Pasifken kurum girişleri ve işlemler "geçici olarak kapalı" mesajı verir; Platform paneli onay için açık kalır.
+• Platform → Kurumlar sayfasının üstünde sunucular listelenir; "Bu sunucuda devam et" ile seçilen çalışır, diğerleri engellenir.
+• Yük dengeleyici ile birden fazla sunucuda çalıştırıyorsanız aynı bölümden "Sunucu kopyası algılama"yı kapatın.
+• Alan adı/IP değişikliği ya da www/alan takma adı alarm üretmez; yalnızca sunucu adı veya klasör yolu değişince tetiklenir.
+• Sınır: eski sunucuya ulaşılamıyorsa ve veritabanı ayrıysa eski sunucu çalışmaya devam eder; onayı kopya sunucudan verin.
+
+VEKİL — TAŞINAN SİTE ONAYI / BİLDİRİM
+• Vekil dosyaları başka adreste kullanılırsa Kurumlar listesinde o kurumun kartında "Site durduruldu — farklı siteye taşındı: <adres>" kutusu çıkar.
+  Seçenekler: "Yalnızca yeni siteyi etkinleştir" (eski adres kapanır), "İkisi de aktif olsun" (iki adres birden çalışır), "Engelle" (anahtar yenilenir).
+• Veriler, kullanıcılar ve giriş-çıkış kayıtları her durumda ana sunucudaki veritabanında tutulur.
+• Kurumlar sayfasının üstündeki "Uyarı bildirimi → Ayarla" ile e-posta/SMS adresi girilirse; taşınma/değişiklik anında bildirim gider
+  (gönderim, Süre mesajları'ndaki "Gönderen kurum" kanalından yapılır; "Deneme gönder" ile test edilebilir).
+
+──────────────────────────────────────────────
+GÜVENLİK ÖNLEMLERİ (özet)
+──────────────────────────────────────────────
+• PHP2Shell (CVE-2026-109618 / -109619): PHP çalışma zamanı açığıdır; uygulama kodu kapatamaz. PHP'yi 8.5.12 / 8.4.27 / 8.3.36 / 8.2.35 veya
+  üstüne güncelleyin (dağıtım yaması için sağlayıcıdan yazılı teyit isteyin) ve PHP/Apache/FPM'i yeniden başlatın.
+  Kısmi azaltım olarak .htaccess ve .user.ini içinde session.upload_progress kapatıldı.
+• Hız sınırları: giriş/oturum uçları IP başına dakikada 120, vekil/sunucu bildirimleri 20, giriş sayfası 120; oturumlu uçlar oturum başına 600/dk.
+  Hatalı şifre: 6 deneme / 15 dk (IP + hesap). Hacimsel (DDoS) saldırılar için Cloudflare vb. bir koruma katmanı önerilir.
+• Dosya yüklemelerinde uzantı + içerik imzası kontrol edilir; yükleme klasörlerinde betik çalıştırma kapalıdır.
+• SMS API adresi / SMTP sunucusu iç ağa yönlendirilemez (SSRF koruması). Geçersiz Host başlıkları reddedilir.
+• Sunucu hatalarının ayrıntısı yalnızca platform yöneticisine gösterilir; diğerleri genel mesaj görür (ayrıntı PHP hata günlüğüne yazılır).
+• Şifre değiştirince diğer cihazlardaki "beni hatırla" oturumları kapanır; şifre değiştirme denemeleri sınırlıdır.
+
+── EĞİTİM / TOPLANTI BİLDİRİMLERİ ──
+• İK → Eğitimler → "Eğitim / toplantı ekle": tür (Eğitim/Toplantı), tarih, saat, yer, katılımcılar.
+• "Katılımcılara bildirim gitsin" (yeni kayıtta açık gelir; İK kapatabilir): SMS ve e-posta işaretli gelir (site içi bildirim her zaman gider).
+  Günler: Oluşturulunca · 1 hafta önce · 3 gün önce · 1 gün önce · Etkinlik günü. (Varsayılan: oluşturulunca, 1 gün önce, etkinlik günü)
+• Tarih/saat/yer değişirse katılımcılara "güncellendi" bildirimi gider. Aynı hatırlatma bir kişiye ikinci kez gitmez.
+• Hatırlatmalar kullanıcılar sistemi açtıkça (08:00'den sonra, yarım saatte bir) kendiliğinden gönderilir; hiç kimse girmese de gitsin istiyorsanız
+  cron ekleyin (günde bir kez 08:30 yeterli):   30 8 * * *  php /yol/ik_etkinlik.php
+• SMS/e-posta ayarı yoksa o kanal atlanır; telefonu/e-postası olmayan kişiye ilgili kanal gitmez (bildirim günlüğüne "kayıtlı değil" yazılır).
+
+── EXCEL İÇE AKTARMA: MEVCUT KİŞİLERİ GÜNCELLEME ──
+• Dosyadaki kişi sistemde zaten varsa (T.C. kimlik ya da ad soyad aynıysa) artık atlanmaz; Birim, Unvan, işe giriş, çalışma şekli gibi dosyada dolu olan bilgiler kişi kartına işlenir. Yeni şifre üretilmez.
+• Bu sayede "kişileri önce birimsiz aktardım, birimler 0 görünüyor" durumu, aynı dosyayı tekrar yükleyerek düzelir.
+• İK kartına yazmak için aktaran kişide "personel düzenleme" yetkisi (ik_duzenle) gerekir; yoksa birim/unvan kaydedilmez.
+
+SMS karakter düzeltmesi: SMS metnindeki uzun tire (–, —), kıvrık tırnak ve üç nokta operatörde "?" görünmesin diye gönderimden önce düz karakterlere (-, ', ...) çevrilir.
+
+Personel arama çubuğu: İzin talebi, vekil seçimi, elle giriş-çıkış kaydı gibi formlarda 8 ve üzeri kişilik seçim kutularının üstünde "Personel ara" kutusu çıkar (Türkçe harf duyarlı).
+
+Birim atama: Kullanıcılar sayfasında kişileri işaretleyip "Birime ata" ile toplu atama; İzin onay akışı > Birimler panelinde "Bu birime personel ata" ile çoklu atama/çıkarma. Atama yapılınca Kullanıcılar ve Personel listelerinde birim hemen görünür.
+
+── İŞLEM LOGLARI · AJANDA · GÖRÜNÜM · RAPORLAR (yeni) ──
+• İşlem logları: izin, belge, zimmet, puantaj, masraf, avans, birim, eğitim, performans, bordro, ayar ve personel bilgisi değişiklikleri otomatik kaydedilir (tablo ik_islem_log; kim, ne, kimin için, IP, saat).
+  Personel kartı > "İşlem geçmişi" sekmesi: o kişiyle ilgili işlemler (arama + tür filtresi). Menü Yönetim > "İşlem logları": tüm kayıtlar; arama, kişi, tür ve tarih filtresi, sayfalama.
+  Görme yetkisi: kurum yetkilisi, İK ayarları / personel görme / personel düzenleme yetkisi olanlar.
+• Personel fotoğrafı: listede ve kartta daha büyük; tıklayınca tam ekran büyür. Kartta kamera düğmesiyle değiştirilir, çöp kutusu düğmesiyle kaldırılır (yetki: personel düzenleme). Liste kartlarından telefon, kıdem ve çalışma şekli kaldırıldı.
+• İşlem logları: artık duyuru (yayın/düzenleme/sabitleme/silme), dosya, anket ve giriş-çıkış işlemleri de kaydedilir (silinen kaydın adı dahil). Arama kutusunun yanındaki seçimle "hangi alanda" aranacağı (açıklama, yapan, etkilenen kişi, bölüm, işlem kodu, IP) belirlenir.
+• Takvim (eski "İzin takvimi"/"Ajanda"): Aylık/Haftalık/Günlük görünüm; yalnızca özel günler, izinler, etkinlikler, notlarınız ve mülakatlar. Filtreler ile türler açılıp kapanır. Güne tıklayıp not, etkinlik/toplantı, izin talebi veya mülakat ekleyebilirsiniz. Notlar yalnızca sahibine görünür, 1 gün önce ve o gün hatırlatılır.
+• İşe alım: aday hunisi (Başvuru, Ön eleme, Mülakat, Teklif, İşe alındı, Reddedildi), sürükle-bırak, puan, mülakat tarih/saat/yer (Takvim'de görünür + hatırlatma). Yetki: personel görme/düzenleme.
+• Performans: "Performans değerlendir" düğmesi → aranabilir kişi seçimi → 90/180/270/360° tür + hazır şablon (Temel yetkinlikler, Hedef ve sonuç, Yönetici, Deneme süresi) → süreç başlar, değerlendirenlere bildirim gider. Süreç sayfasında hatırlatma gönder, değerlendiren ekle/çıkar, bireysel ve toplu rapor (CSV/yazdır). Hedefler sekmesi: ilerleme takibi. Eski puan kayıtları "Puan kayıtları" sekmesinde. Süreç/rapor için yetki: ik_performans_yonet.
+• Paketler (platform): "Paketler" sayfasında modül paketleri (fiyat aylık/yıllık, para birimi, modül içeriği, Tam paket) tanımlanır. Kurumlar > kurum kartı > "Paketler": paket ata/uzat (aylık, yıllık, gün, bitiş tarihi; tümünü seç / tam paket), ayarlar: paket modu (kapalıyken kilit yok), Paketlerim sayfası görünsün, vitrin görünsün, kuruma özel indirim (aylık/yıllık ayrı, % veya tutar). Paket modunda süresi biten/alınmayan modüller menüde ve sunucuda kilitlenir; veri silinmez. Kurum ayarlarında ayrıca: “i” bilgi düğmesi, kalan süre, indirim bildirimi aç/kapa ve kurum bazında hangi paketlerin görüneceği (yeni kurumlarda hepsi açık; Paketler sayfasında her paket Pasifleştir/Aktifleştir). Kurum tarafı: indirim tanımlıysa ana sayfada kapatılabilir indirim bildirimi (tıklayınca indirimli paketler); Paketlerim + "Bilgi al" talepleri Paketler sayfasında listelenir.
+• Görünüm ve menü: tüm menü bölümleri (giriş-çıkış, raporlar, personel, yönetim sayfaları dahil) kompakt anahtarlarla gösterilir/gizlenir; gruplarda “Tümünü aç/kapat” vardır. “Görünüm ve menü” kapatılamaz. Değişiklikler anında kaydedilir (Kaydet düğmesi yok).
+• Duyuru sabitleme: duyuru yayınlarken veya sonradan raptiye ile; sabit duyurular her sayfanın üstünde anında (yenilemesiz) animasyonlu çubukta görünür, tıklayınca duyuruya gider; yetkililer/oluşturan kaç kişi gördüğünü ve kimlerin gördüğünü izler.
+• Özlük evrakı/zimmet: ilgili sayfalardan kişi seçilerek ekleme (yalnızca yetkililer). Herkesin kendi evrak/zimmetini görmesi Görünüm ve menü'den kurum geneli veya kişiye özel (istisna) ayarlanır.
+• Birimler: birim adının yanında amir fotoğrafları; tıklayınca büyür.
+• Ana panel: "Bugün kimler" özel gün yoksa gizlenir; tek sayfaya sığacak kompakt düzen.
+• Görünüm ve menü (Yönetim > Görünüm ve menü, yalnızca kurum yetkilisi / İK ayarları yetkisi): kullanılmayan bölümleri (örn. Personel masrafları) menüden kapatın; kapalı bölümün işlemleri sunucuda da reddedilir, veriler silinmez.
+  "Sade tema": gradyan/gölge kalkar. Favicon: sekme simgesi yükleyin/kaldırın (PNG, ICO, JPG, WEBP, GIF; en fazla 512 KB). Ayarlar tüm kurum için geçerlidir (ik_ayarlar: menu_kapali, tema_sade, favicon).
+• Ana panel: daha derli toplu ızgara; birimler halka grafiğiyle, ajanda ve son işlemler kutularıyla.
+• Raporlar: yeni türler — Personel listesi, İşe giriş/ayrılışlar, Masraf, Zimmet, Belge geçerlilik süreleri, Eğitim katılımı, Performans, Bordro özeti (maaş yetkisi ister), Doğum günleri/iş yıldönümleri, İşlem logları.
+  Tarih seçerken "Ay" ve "Yıl" listelerinden de seçebilirsiniz; her rapor ekranda, PDF ve CSV olarak alınabilir.
+
+
+Personel kartı: personele tıklayınca yarım yan panel yerine TAM SAYFA açılır; sol üstteki "Personel listesi" düğmesi (ya da Esc) listeye döndürür.
+
+İK paneli karşılama bandı: renkli gradyan yerine editoryal tasarım (büyük gün rakamı, ince çizgiler, sade yüzey); açık/koyu temaya ve "sade görünüm" ayarına uyar.
+
+Marka (white-label): Platform paneli → Site ayarları → Görsel → "Logo" ve Genel → "Site / ürün adı". Giriş sayfasındaki logo + ad, alt bilgi (© satırı), İK/platform alt bilgisi, giriş-çıkış başlığı ve parmak izi (WebAuthn) adı bu ayardan gelir; Turkuaz yazısı kalmaz.
+
+İK ana sayfa: kart panosu (profil kartı, izin bilgilerim, çalışan dağılımı, resmi tatiller, etkinlik takvimi, doğum günleri, yaklaşan izinler, izin/masraf/avans talepleri, süresi dolacak belgeler, yeni ne var). Kartlar ekran genişliğine göre sütunlara akar; "Paneli özelleştir" ile kartlar açılıp kapatılır. Tüm sayfalarda içerik alanı artık tam genişlik (yanlarda boşluk kalmaz).
+
+İzin bakiye raporu + DEVİR kuralı: Kullanıcılar → "İzin aktar" → "Çalışan İzin Bakiye Raporu" Excel'i. Dosyadaki TÜM sütunlar kişiye işlenir:
+  kişi kartına (işe giriş, birim, unvan, kariyer başlangıcı, şirket, T.C.) + izin dönemi/devreden/hak/kullanılan hesabına + ham haliyle kişinin "İzinler" sekmesinde "İzin bakiye raporu" olarak saklanır (yeni bir sütun gelirse o da saklanır).
+  Kural: kullanılmayan izin bir sonraki döneme DEVREDER (kalan = devreden + dönem hakkı − kullanılan; kullanılandan fazlası eksi/avans olarak devredilir). Dönem, "izne esas hak ediş" yıldönümüne göredir; dönem değişince devir otomatik zincirlenir.
+  Rapor tarihinden SONRA onaylanan/planlanan izinler bakiyeden düşülür (dosya adındaki tarih rapor tarihi alınır, değiştirilebilir). Dosyayı yenisiyle yüklemek bakiyeyi günceller.
+
+İzinler sayfası sekmeleri: İzinler (talepler) · Raporlar (İzin Bakiye Raporu + Kullanılan İzin Raporu: ay/yıl seçimi, arama, Excel'e indir) · Kurallar (Türk İş Kanunu kuralı, izin türleri, devir) · Onay Süreçleri · Takvim. Raporlar/Kurallar yalnızca personel görme ya da izin onay yetkisi olanlara görünür. Excel'den aktarılan izinlerde artık "Excel içe aktarma" notu yazılmaz (eski kayıtlardaki not da otomatik temizlenir).
+
+Personel bilgi formu (Word) toplu aktarımı: Kullanıcılar → "Bilgi formu aktar". "Personel Bilgi Formu" .docx dosyalarını toplu seçin ya da .zip yapıp yükleyin (RAR'ı önce bilgisayarda açın). Kişi T.C. kimlik, olmazsa ad soyada göre bulunur; bulunamayanlar listelenir.
+  İşlenen alanlar: T.C., doğum tarihi/yeri, şahsi e-posta/telefon, dernek e-posta/telefon (giriş e-postası/telefonu), adres, acil durum kişisi, eğitim, okul, askerlik, medeni durum, çocuk sayısı, kan grubu, anne/baba adı, IBAN/banka, birim, unvan, işe giriş ve SGK başlangıç tarihi.
+  Varsayılan olarak yalnızca BOŞ alanlar doldurulur; "dolu bilgilerin üzerine de yaz" ile üzerine yazılır. Formun tamamı kişi kartında "Personel bilgi formu" olarak saklanır. Taranmış resim/PDF formlar okunamaz.
+Dosya yükleme alanları: tüm yükleme pencerelerinde sürükle-bırak kutusu (seçilen dosyalar ve toplam boyut gösterilir).
+
+Şirket yapısı (Birimler): "Departmanlar" ve "Unvanlar" sekmeleri. Unvanlar sayfasında unvan ekle / yeniden adlandır (kişi kartları da güncellenir) / sil (kişi varsa silinmez). Personel kartı → İş bilgileri düzenlenirken Birim ve Unvan bu listelerden seçilir; içe aktarmalar da listeye yeni birim/unvan ekler.
+Erişim kuralları: "Yetkiler" penceresinde artık Kişi, Birim (departman), Unvan, Görev, Rol ve Herkes için kural verilebilir. Öncelik: Kişi › Unvan › Birim › Görev › Rol › Herkes. "Sayfa erişimi" sayfasındaki özel kural sayısı bunları da sayar.
+Onay bildirimleri kime gitsin? (Sayfa erişimi sayfasının altında, yalnızca kurum yöneticisi): izin, masraf, avans ve mesai talepleri için "Onay yetkisi olanlar" (varsayılan) / "Yalnızca yöneticiler" (kişinin bağlı olduğu yönetici + birim müdürleri) / "Seçili kişiler".
+Duyurular: kartlarda uzun metin kısaltılır, "Devamı/Daralt" ile açılıp kapanır; "Detay" tam ayrıntı penceresini açar. İK ana sayfasında sağdaki boşluğa "Duyurular" kartı eklendi. Kişi kartı gibi tam sayfa ekranlarda sol menü artık görünür kalır.
+Sabit duyuru çubuğu: sayfa üstündeki sabitlenmiş duyuruya tıklayınca açıklaması altında açılır menü gibi açılır; "Detay" tam ekran pencereyi, "Kapat" paneli kapatır.
+Tam sayfa kişi kartı: içerik sayfayı doldurur; soldaki menüden bir sayfaya tıklanınca kart kapanır ve o sayfa açılır.
+Giriş-çıkış onay yöntemi: Ayarlar → Giriş-çıkış ayarlarında kurum varsayılanı (Kaydır, Halka, Geri sayım, Kapı, Kadran, Onay işareti, Çift dokunuş) seçilir; seçim tüm personelin giriş ekranında geçerli olur (kişisel seçici yoktur). Konum/PIN/cihaz/parmak izi doğrulamaları her yöntemde aynıdır.
+Giriş-çıkış yöntemleri kaydırmalı düğmeyle aynı yükseklikte (76 px) ve kutusuz görünür; telefonda süre halkası küçülmez, sayfa kaydırma gerektirmez.
+Giriş-çıkış yöntemi "Parmak izi: dokun": alana dokununca telefonun parmak izi / Face ID penceresi açılır; seçilince "her girişte parmak izi iste" otomatik açılır (cihazda kayıtlı parmak izi gerekir).
+
+KURUM İMZASI (platform paneli → Kurumlar → Düzenle → "İmzayı göster")
+  Açık (varsayılan): sayfa altında "Tüm hakları saklıdır, Turkuaz Bileşim" yazar.
+  Kapalı: "Tüm hakları saklıdır, <kurum adı>" yazar; platform adı kurumun sayfalarında
+  (alt bilgi, sekme başlığı, giriş-çıkış sayfası, e-posta/PDF varsayılan adları) görünmez.
+  Giriş sayfasında kurum seçilmeden önce (giris.php?kurum=KOD kullanılmıyorsa) genel site adı görünür.
+  Sekme başlığı (title) ve ana ekran kısayolu adı da aynı kurala uyar: imza kapalıysa kurum adı yazar.
+
+OTOMATİK VERİ TABANI YEDEĞİ (platform paneli → Kurumlar → Sunucu → Veri tabanı → Otomatik yedek)
+  Seçenekler: Kapalı · 5/10/15/30 dakikada bir · her saat · 3/6/12 saatte bir · günde bir ·
+  özel aralık (5 dk – 7 gün, dakika yazılır) · her gün belirli saatte (örn. 03:00). "Kaydet"e basınca uygulanır.
+  Kurum kartında "Otomatik yedek: açık · her X · son ..." ya da "kapalı" yazar.
+  Tetiklenme: giriş yapmış kullanıcıların sayfaları açıkken ~20 sn'de bir kontrol edilir; kimse girmese de tam zamanında
+  çalışması için sunucuda cron: * * * * * php /yol/platform_vekil.php
+
+GÜNLÜK GİRİŞ RAPORU (E-POSTA) — İK → Giriş-çıkış ayarları → "Günlük giriş raporu"
+  Açıkken her gün ayarlı saatte (örn. 11:00) o gün henüz giriş yapmayanların listesi belirlenen e-posta adres(ler)ine gider.
+  "Geç giriş yapanları da göster" açıksa mailin altına geç girenler ve giriş saatleri eklenir.
+  İzinli/raporlu kişiler, mesaisi henüz başlamamış kişiler (kişiye özel vardiya dahil) ve çalışma günü olmayan günler dahil edilmez.
+  "Şimdi deneme gönder" ile test edilir. Gönderim için İK ayarlarında e-posta (gönderen/SMTP) tanımlı olmalıdır.
+  Tetikleme: giriş yapmış kullanıcıların sayfası açıkken ~20 sn'de bir kontrol; kimse girmese de zamanında gitmesi için cron:
+    * * * * * php /yol/giris_rapor_cron.php
+
+KULLANICI ADLARI
+  Yeni kullanıcı adları ad soyad birleşik üretilir (Ali Veli → aliveli). Platform → Kurumlar → "Mevcutları güncelle" düğmesi
+  tüm kurumlardaki noktalı adları noktasız yapar (çakışanlar olduğu gibi kalır). Eski noktalı adla giriş yine de çalışır.
+
+AKTİVASYON KODLU KURUM PAKETİ (platform paneli → Yeni kurum → Barındırma → "Aktivasyon kodlu paket")
+  Amaç: kurumun kendi sunucusunda çalışan, tek seferlik ve çoğaltılamayan paket.
+  1) Kurum eklerken "Barındırma" olarak "Aktivasyon kodlu paket"i seçin. Kurum oluşur ve BİR KEZ gösterilen kod üretilir
+     (XXXX-XXXX-XXXX-XXXX). Kodu müşteriye ayrı kanaldan iletin. Bu kurum, ana sunucuda açılmaz (verisi müşteridedir).
+  2) "Paketi indir" ile zip alınır (kurum kartı → "Aktivasyon" düğmesi). Zip: uygulama + kurumun başlangıç verisi + lisans anahtarı.
+  3) Müşteri zip'i sunucusuna açar, kurulum.php'de KENDİ veri tabanı bilgilerini girer ("Kurumu kur"), açılan sayfada kodu yazar.
+     Kod ana sunucuda doğrulanır ve yalnızca bir kez çalışır; kurulum o adrese (alan adına) bağlanır.
+  Korumalar: kod tek kullanımlık (ana sunucuda saklanan özet), her ~6 saatte bir ana sunucuya imzalı doğrulama yapılır.
+    • Uygulama dosyası değiştirilir/silinirse (dosya parmak izi) → doğrulama reddedilir, kurulum kilitlenir.
+    • Başka adrese/sunucuya kopyalanırsa → çalışmaz (adres + kurulum kimliği kontrolü); ana sunucuda uyarı görünür.
+    • Anahtar dosyası (config/aktivasyon.anahtar.php) silinirse → veri tabanındaki işaret nedeniyle yine çalışmaz.
+    • Ana sunucuya ulaşılamazsa en fazla 72 saat son doğrulamaya güvenilir; sonra kilitlenir.
+  Platform → Kurumlar → "Aktivasyon" düğmesi: durum, bağlı adres, son doğrulama, uyarılar; "Yeni kod üret" (sıfırlar, yeni paket gerekir),
+  "İptal et" (müşteri kurulumu sonraki doğrulamada kilitlenir).
+  Güncelleme: müşterinin dosyaları ana sunucudaki sürümle aynı kalmalıdır; yeni sürüm için yeni paket (yeni kod) üretilir.
+  DÜRÜST SINIR: düz PHP kaynak kodu %100 değişmez yapılamaz; kapıyı kodu elle sökerek aşmak mümkündür. Daha sıkı koruma için
+  paketi ionCube/SourceGuardian gibi bir araçla şifreleyin. Ana sunucuda sodium eklentisi varsa belirteçler ed25519 ile imzalanır.
+
+E-POSTA LOGOSU
+  İK → Ayarlar → e-posta logosu, tüm maillerin (günlük giriş raporu dahil) üst şeridinde görünür. Sunucuda yüklü logo mailin
+  içine gömülür (cid); adres ya da "resimleri göster" iznine bağlı değildir, spam klasöründe bile görünür. Logo yoksa firma adı yazar.
+
+VAR OLAN KURUMUN KODLU KOPYASI (Kurumlar → kurum kartı → "Kodlu kopya")
+  Mevcut bir kurumu (vekil sunuculu olsa da) bozmadan kopyalayıp aktivasyon kodlu pakete çevirir. Kurum bu sunucuda çalışmaya devam eder;
+  paket, indirildiği andaki verilerin kopyasını taşır (sonraki değişiklikler kopyaya yansımaz). Kod bir kez gösterilir; "Aktivasyon"
+  düğmesinden paket indirilir, yeni kod üretilir ya da iptal edilir. Kopya, müşteride kodla etkinleşir; korumalar aynıdır.
+  Not: paket, bu sunucunun veri tabanındaki kurum verisini içerir; verisi yalnızca uzak (vekil) veri tabanında tutulan kurumlarda
+  önce Sunucu → Veri tabanı yedeği ile verinin güncel olduğundan emin olun.
+
+KURUM VERİSİ ÇEK (platform paneli → Yedek ve güncelleme → "Kurum verisi çek")
+  Kaynak sunucudan (adres + anahtar: "Doğrudan kaynaktan çekin" alanı) seçilen kurumun verisini HEDEF veri tabanına yazar.
+  Hedef veri tabanı adı/sunucu/kullanıcı/şifre forma yazılır (saklanmaz); boş bırakılırsa bu kurulumun veri tabanı kullanılır.
+  Hedefte o kurumun tabloları varsa yenisiyle DEĞİŞTİRİLİR (güncellenir), kurum kaydı güncellenir; diğer kurumlara dokunulmaz.
+  Hedefte kurum tablosu yoksa oluşturulur. Yeni aktarımda hata olursa yarım kalan tablolar silinir.
+  Yüklenen dosyalar (logo, belgeler) yalnızca hedef bu kurulumun kendi veri tabanıysa taşınır; başka veri tabanına yalnızca veri gider.
+  Kaynak sunucuda da bu sürüm kurulu olmalı. Not: kurum numarası hedefte kullanılıyorsa o numaralı kurumun verisi değiştirilir.
+
+GİRİŞ SAYFASINDA KURUM ADI (İmzayı göster kapalıysa)
+  Kurum seçili ya da tek kurum paketi olan giriş sayfasında, "İmzayı göster" kapalı kurumda sekme başlığı, sol üstteki ürün adı
+  ve alt yazı "Turkuaz Bileşim İK" yerine kurum adını gösterir. Kurum seçilmeden önceki genel giriş sayfası platform adını (Genel ayarlar → Site adı) kullanır.
+
+KODLU PAKETTE ASKIYA ALMA
+  Ana sunucuda aktivasyon kodlu kurumu "Askıya al" (ya da kullanım süresi dolarsa) müşterinin sitesi de kapanır: müşteri sunucusu
+  ana sunucuya her ~15 dakikada bir sorar ve "Hesap askıda" sayfasını gösterir (giriş yapılamaz). "Etkinleştir"e basınca ~1 dakika içinde
+  kendiliğinden açılır; yeni kod gerekmez. (Doğrulama süresi 6 saatten 15 dakikaya indirildi.)
+
+PERFORMANS MENÜSÜ VARSAYILANI
+  "Menü: Performans sayfasını görme" yetkisi artık varsayılan olarak yalnızca yetkili ve kurucuya açıktır; personel menüde Performans'ı görmez.
+  Personele/birime/göreve vermek için İK → Yetkiler ekranından bu yetkiyi açın. Yetki ekranında daha önce elle kayıt edilmiş kurallar korunur.
+
+[Düzeltme] Toplu SMS / anahtar satırlı pencerelerde gizli onay kutuları pencere dışına taştığı için kaydırınca pencere içeride kayıp beyaz alan oluşuyordu; satırlar artık kendi içinde konumlanıyor (tb-ikm.css).
+
+[Düzeltme] "Paketi indir" artık sayfadan ayrılmadan indirir; sunucu hata verirse gerçek hata mesajı ekranda gösterilir (platform.js). Paket hazırlama zaman/bellek sınırı genişletildi.
+
+[Düzeltme] Eski sürümden kalan pf_aktivasyon tablosunda eksik sütunlar (ana, paket_zaman vb.) açılışta otomatik eklenir; "Paketi indir" bu yüzden "bind_param on bool" hatası veriyordu.

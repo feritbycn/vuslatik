@@ -1,0 +1,16 @@
+config/db.php dosyasını kurulum sihirbazı (kurulum.php) otomatik oluşturur; elle yazmanız gerekmez.
+Elle yazmak isterseniz:
+
+<?php
+return [
+    'host' => 'localhost',
+    'kullanici' => 'VERITABANI_KULLANICI',
+    'sifre' => 'VERITABANI_SIFRE',
+    'veritabani' => 'VERITABANI_ADI',
+    'port' => 3306,
+    'saat_dilimi' => 'Europe/Istanbul',
+    'oturum_adi' => 'TBSID',
+];
+
+Önemli: ürünü güncellerken bu klasördeki db.php dosyasının üzerine yazmayın. Güncelleme paketi bu dosyaya dokunmaz;
+elle kopyalıyorsanız config/ klasörünü değil, yalnızca değişen dosyaları kopyalayın.

@@ -1,0 +1,71 @@
+# Turkuaz Bileşim — ürün klasörü kuralları
+Options -Indexes
+DirectoryIndex index.php
+
+# Üst klasörde ".php uzantısını gizle" gibi kurallar varsa bu klasör için devre dışı kalır
+# (RewriteOptions Inherit kullanılmadığı için üst kurallar buraya uygulanmaz).
+<IfModule mod_rewrite.c>
+RewriteEngine On
+# Uzantısız adresler de çalışsın: /ik/urun/giris  →  giris.php
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^([^.]+)$ $1.php [L]
+</IfModule>
+
+# Gizli dosyalar ve yedekler tarayıcıdan açılamaz
+<FilesMatch "\.(sql|log|kilit|zip|sablon|md|bak|old|orig|swp|ini|ornek)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# Kurulum/yönetim notları ve sürüm bilgisi dışarıdan okunamaz
+<FilesMatch "^(OKU_BENI\.txt|OKU\.txt|surum\.json|db\.ornek\.txt|\.user\.ini)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Deny from all
+  </IfModule>
+</FilesMatch>
+# Nokta ile başlayan gizli dosyalar (.git, .env ...) açılamaz
+<FilesMatch "^\.(?!htaccess$)">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# Yalnızca dahil edilen (doğrudan çalıştırılması anlamsız) PHP dosyaları dışarıdan açılamaz
+<FilesMatch "^(vdb|platform_ortak|platform_vekil|platform_sunucu|platform_mesaj|ik_ortak|ik_kanal|duyuru_ortak|giris_ortak|giris_webauthn|rapor_ortak|bakim_ortak|kurum_yedek|tb_yetki_motor|header)\.php$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# PHP çalışma zamanı sıkılaştırması (PHP2Shell / CVE-2026-109618 ve -109619 için kısmi azaltım; asıl çözüm PHP'yi güncellemektir)
+<IfModule mod_php.c>
+  php_flag session.upload_progress.enabled off
+  php_flag expose_php off
+  php_flag display_errors off
+  php_value post_max_size 64M
+</IfModule>
+<IfModule mod_php8.c>
+  php_flag session.upload_progress.enabled off
+  php_flag expose_php off
+  php_flag display_errors off
+  php_value post_max_size 64M
+</IfModule>
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Content-Security-Policy "frame-ancestors 'self'; base-uri 'self'; object-src 'none'"
+</IfModule>

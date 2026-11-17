@@ -1,0 +1,55 @@
+/* Giriş-çıkış alternatif onay yöntemleri (tb-giris-yontem.js): kaydırmalı düğmeyle aynı yükseklikte (76 px), kutusuz */
+.gc-kay.gc-yo { --gy-c: #2563eb; --gy-f: var(--gy-c); height: 76px !important; min-height: 0 !important; padding: 0 !important; margin-top: 0 !important; border-radius: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important; backdrop-filter: none !important; overflow: visible; display: flex !important; align-items: center; justify-content: center; gap: 14px; touch-action: auto !important; color: inherit; }
+.gc-kay.gc-yo.cikis { --gy-c: #e11d48; }
+body.gc-tam .gc-kay.gc-yo { color: #fff; --gy-f: #fff; }
+body.gc-tam .gc-kay.gc-yo.giris { --gy-c: #4f46e5; }
+.gc-kay.gc-yo::before, .gc-kay.gc-yo::after { display: none !important; }
+.gc-yo-sahne { position: relative; display: grid; place-items: center; flex: none; }
+.gc-yo-ipucu { flex: 1 1 0; min-width: 0; font-weight: 700; font-size: 14px; line-height: 1.3; text-align: left; opacity: .92; }
+.gc-kay.gc-yo.pasif .gc-yo-sahne { opacity: .45; pointer-events: none; filter: grayscale(.4); }
+.gc-yo-bitti .gc-yo-sahne { animation: gyBit .35s ease-out; }
+@keyframes gyBit { 50% { transform: scale(1.06); } }
+.gy-ttk { animation: gyTtk .3s; }
+@keyframes gyTtk { 25% { transform: translateX(-7px); } 75% { transform: translateX(7px); } }
+.gy-btn { border: 1px solid rgba(128,128,128,.25); cursor: pointer; background: #fff; color: var(--gy-c); font-family: inherit; touch-action: none; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; box-shadow: 0 6px 16px -6px rgba(0,0,0,.5); }
+/* halka + geri sayım */
+.gy-halka { position: relative; width: 74px; height: 74px; display: grid; place-items: center; }
+.gy-halka > svg { position: absolute; inset: 0; transform: rotate(-90deg); pointer-events: none; }
+.gy-halka circle, .gy-cift circle { fill: none; stroke-width: 6; }
+.gy-halka .t { stroke: rgba(128,128,128,.3); } .gy-halka .p { stroke: var(--gy-f); stroke-linecap: round; }
+.gy-halka .gy-btn { width: 52px; height: 52px; border-radius: 50%; font-size: 24px; display: grid; place-items: center; }
+.gy-say b { font-size: 28px; font-weight: 800; display: block; }
+.gy-pop { animation: gyPop .3s cubic-bezier(.3,1.6,.5,1); }
+@keyframes gyPop { from { transform: scale(1.6); opacity: .2; } to { transform: none; opacity: 1; } }
+/* kapı: tam genişlik, aynı yükseklik */
+.gc-yo-kapi .gc-yo-sahne, .gc-yo-cizim .gc-yo-sahne { flex: 1 1 auto; width: 100%; height: 100%; }
+.gc-yo-kapi .gc-yo-ipucu, .gc-yo-cizim .gc-yo-ipucu { display: none; }
+.gy-kapi { position: relative; width: 100%; height: 76px; border-radius: 26px; overflow: hidden; background: rgba(128,128,128,.25); display: grid; place-items: center; touch-action: none; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.gy-kapi .gy-ck { font-size: 32px; color: var(--gy-f); pointer-events: none; }
+.gy-dl, .gy-dr { position: absolute; top: 0; bottom: 0; width: 50.5%; background: linear-gradient(#fff, #e6ecf7); display: grid; align-items: center; pointer-events: none; }
+.gy-dl { left: 0; border-right: 1px solid #cbd5e1; } .gy-dr { right: 0; border-left: 1px solid #cbd5e1; }
+.gy-dl i, .gy-dr i { width: 5px; height: 34px; background: #cbd5e1; border-radius: 3px; } .gy-dl i { justify-self: end; margin-right: 10px; } .gy-dr i { margin-left: 10px; }
+.gy-sm { position: absolute; inset: 0; display: grid; place-items: center; padding: 0 16px; text-align: center; font-weight: 800; font-size: 14px; color: var(--gy-c); pointer-events: none; z-index: 2; }
+/* kadran */
+.gy-kadran { position: relative; width: 74px; height: 74px; display: grid; place-items: center; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+.gy-rg { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; background: conic-gradient(var(--gy-f) calc(var(--p, 0) * 360deg), rgba(128,128,128,.3) 0); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px)); mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px)); }
+.gy-kn { width: 54px; height: 54px; border-radius: 50%; background: #fff; color: var(--gy-c); display: grid; place-items: center; font-weight: 800; font-size: 11px; position: relative; box-shadow: 0 6px 16px -6px rgba(0,0,0,.5); pointer-events: none; }
+.gy-kn i:first-child { position: absolute; top: 6px; left: 50%; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: var(--gy-c); }
+.gy-kn .fa-check { font-size: 24px; }
+/* çizim: tam genişlik */
+.gc-yo-cizim .gc-yo-sahne { position: relative; }
+.gy-cv { display: block; width: 100%; height: 76px; border-radius: 26px; background: rgba(128,128,128,.25); touch-action: none; cursor: crosshair; }
+.gy-ph { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); font-weight: 700; font-size: 13px; max-width: 38%; line-height: 1.25; pointer-events: none; opacity: .9; transition: opacity .2s; }
+/* çift dokunuş */
+.gy-cift { position: relative; width: 74px; height: 74px; display: grid; place-items: center; }
+.gy-cift > svg { position: absolute; inset: 0; transform: rotate(-90deg); overflow: visible; pointer-events: none; }
+.gy-cift circle { stroke: var(--gy-f); stroke-linecap: round; opacity: 0; }
+.gy-cift.gy-arm circle { opacity: 1; animation: gyShr 1.4s linear forwards; }
+@keyframes gyShr { from { stroke-dashoffset: 0; } to { stroke-dashoffset: var(--c); } }
+.gy-cift .gy-btn { width: 56px; height: 56px; border-radius: 50%; font-weight: 800; font-size: 10.5px; line-height: 1.1; padding: 0 4px; touch-action: manipulation; transition: transform .2s; }
+.gy-cift.gy-arm .gy-btn { transform: scale(1.08); }
+.gy-cift .fa-check { font-size: 26px; }
+@media (prefers-reduced-motion: reduce) { .gy-cift.gy-arm circle, .gy-pop { animation: none; } }
+
+.gy-oku { animation: gyOku .7s ease-in-out; }
+@keyframes gyOku { 50% { transform: scale(.92); } }

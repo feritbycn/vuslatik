@@ -1,0 +1,7 @@
+# Yalnızca giriş sayfası dizinlenebilir (asıl izin site ayarlarındaki "Robots" değerindedir)
+User-agent: *
+Allow: /giris.php
+Disallow: /platform.php
+Disallow: /ik.php
+Disallow: /config/
+Disallow: /uploads/

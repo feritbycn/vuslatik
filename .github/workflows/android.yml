@@ -1,0 +1,83 @@
+name: Android (AAB + APK)
+
+on:
+  workflow_dispatch:
+    inputs:
+      surum_adi:
+        description: "Sürüm adı (örn. 1.0.0)"
+        default: "1.0.0"
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobil
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobil/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Bağımlılıklar
+        run: npm ci
+
+      - name: Firebase yapılandırması (google-services.json)
+        env:
+          GOOGLE_SERVICES_JSON_B64: ${{ secrets.GOOGLE_SERVICES_JSON_B64 }}
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON_B64" ]; then echo "::warning::GOOGLE_SERVICES_JSON_B64 yok — uygulama derlenir ama anlık bildirim çalışmaz"; else echo "$GOOGLE_SERVICES_JSON_B64" | base64 -d > android/app/google-services.json; fi
+
+      - name: Capacitor senkronu
+        run: npx cap sync android
+
+      - name: İmza anahtarını hazırla
+        id: imza
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            echo "KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+            echo "imzali=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::ANDROID_KEYSTORE_B64 yok — AAB/APK imzasız üretilir (Google Play'e yüklenemez)"
+            echo "imzali=0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: AAB + APK derle
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: ${{ github.event.inputs.surum_adi || github.ref_name }}
+        working-directory: mobil/android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon bundleRelease assembleRelease
+
+      - name: Çıktıları topla
+        run: |
+          mkdir -p ../cikti
+          cp android/app/build/outputs/bundle/release/*.aab ../cikti/ 2>/dev/null || true
+          cp android/app/build/outputs/apk/release/*.apk ../cikti/ 2>/dev/null || true
+          ls -la ../cikti
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bilge360-ik-android
+          path: cikti/*
+          if-no-files-found: error
