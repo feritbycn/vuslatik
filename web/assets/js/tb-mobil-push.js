@@ -13,7 +13,9 @@
     document.documentElement.classList.add('mobil-app');
     var FM = null;
     try { FM = C.registerPlugin ? C.registerPlugin('FirebaseMessaging') : (C.Plugins && C.Plugins.FirebaseMessaging); } catch (e) { FM = C.Plugins && C.Plugins.FirebaseMessaging; }
-    if (!FM) return;
+    var APIx = 'ik_bildirim.php';
+    function raporX(m) { try { var fd = new FormData(); fd.append('islem', 'mobil_hata'); fd.append('mesaj', String(m).slice(0, 380)); fd.append('_csrf', (window.TB && window.TB.csrf) || ''); fetch(APIx, { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'X-CSRF-Token': (window.TB && window.TB.csrf) || '' } }).catch(function () {}); } catch (e) {} }
+    if (!FM) { raporX('FirebaseMessaging eklentisi uygulamada yok (eski APK ya da eklenti eksik)'); return; }
     var API = 'ik_bildirim.php', platform = C.getPlatform ? C.getPlatform() : '';
     var csrf = function () { return (window.TB && window.TB.csrf) || ''; };
     function yolla(islem, v, hizli) {
@@ -134,11 +136,12 @@
         return new Promise(function (ok) { navigator.geolocation.getCurrentPosition(function () { ok(); }, function () { ok(); }, { timeout: 15000, maximumAge: 600000 }); });
     }
     function bildirimIzni() {
-        return FM.checkPermissions().then(function (r) { return r.receive === 'granted' ? r : FM.requestPermissions(); }).then(function (r) {
+        return FM.checkPermissions().then(function (r) { raporX('izin durumu: ' + r.receive + ' · ' + platform); return r.receive === 'granted' ? r : FM.requestPermissions(); }).then(function (r) {
+            raporX('izin sonrası: ' + r.receive);
             if (r.receive !== 'granted') { if (!depo('ik_bildirim_uyari')) { depo('ik_bildirim_uyari', '1'); uyar('Bildirim izni verilmedi. Telefon Ayarları → Uygulamalar → Bilge360 İK → Bildirimler bölümünden açabilirsiniz.'); } return null; }
             if (platform === 'android' && FM.createChannel) FM.createChannel({ id: 'ik_bildirim', name: 'İK bildirimleri', description: 'İzin, onay ve duyuru bildirimleri', importance: 5, visibility: 1, vibration: true, sound: 'default' }).catch(function () {});
-            return FM.getToken().then(function (t) { kaydet(t.token); return t; });
-        }).catch(function (e) { uyar('Bildirim servisi başlatılamadı (Firebase yapılandırması eksik olabilir): ' + ((e && e.message) || e)); });
+            return FM.getToken().then(function (t) { raporX('token alındı (' + String(t.token || '').length + ' karakter)'); kaydet(t.token); return t; });
+        }).catch(function (e) { raporX('HATA: ' + ((e && e.message) || e)); uyar('Bildirim servisi başlatılamadı (Firebase yapılandırması eksik olabilir): ' + ((e && e.message) || e)); });
     }
     function baslat() {
         // Girişten sonra gereken izinler sırayla istenir: bildirim → konum

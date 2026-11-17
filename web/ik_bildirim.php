@@ -111,6 +111,13 @@ if ($islem === 'mobil_kayit') {
     if (!$st->execute()) ikb_h('Cihaz kaydedilemedi.', 500);
     ikb_c(['ok' => true, 'fcm' => ik_fcm_ayar() !== null]);
 }
+if ($islem === 'mobil_hata') {
+    // Uygulamanın kendi durum / hata bildirimi (tanı panelinde görünür)
+    $m = mb_substr(trim((string)($girdi['mesaj'] ?? '')), 0, 380, 'UTF-8');
+    $st = $db->prepare("INSERT INTO ik_fcm_log (kullanici_id, http, sonuc, ayrinti) VALUES (?, 0, 'istemci', ?)");
+    $st->bind_param('is', $uid, $m); $st->execute();
+    ikb_c(['ok' => true]);
+}
 if ($islem === 'mobil_sil') {
     $h = hash('sha256', trim((string)($girdi['token'] ?? '')));
     $db->query("DELETE FROM ik_mobil_cihazlar WHERE kullanici_id = $uid AND token_hash = '$h'");
