@@ -104,6 +104,16 @@
             if (!window.IKBildirim || !window.IKBildirim.on) return setTimeout(kancala, 500);
             window.IKBildirim.on(function (o) { if (o && o.tip === 'yeni' && o.items) o.items.slice(-3).forEach(yerelBildirim); });
             yerelHazir();
+            /* Açılışta: uygulama kapalıyken gelmiş, okunmamış bildirimleri de telefona düşür */
+            var tara = function () {
+                if (!window.IKBildirim.liste) return;
+                window.IKBildirim.liste().then(function (j) {
+                    var son = parseInt(depo('ik_yerel_son') || '0', 10) || 0;
+                    (j.items || []).filter(function (b) { return !b.okundu && b.id > son; }).sort(function (a, b) { return a.id - b.id; }).slice(-3).forEach(yerelBildirim);
+                }).catch(function () {});
+            };
+            tara();
+            document.addEventListener('visibilitychange', function () { if (!document.hidden) tara(); });
         };
         kancala();
     }
