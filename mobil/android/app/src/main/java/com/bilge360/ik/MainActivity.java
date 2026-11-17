@@ -77,7 +77,7 @@ public class MainActivity extends BridgeActivity {
         } catch (Exception ignored) {}
     }
 
-    @Override public void onResume() { super.onResume(); yenileBayat(); tokenAl(); kayitDongusu(); }
+    @Override public void onResume() { super.onResume(); cubukDongusu(); yenileBayat(); tokenAl(); kayitDongusu(); }
 
     /** Bildirim kanalı uygulama tarafında da oluşturulur (sayfa JS'i çalışmasa bile FCM bildirimi bu kanaldan gösterilir) */
     private void kanalOlustur() {
@@ -142,7 +142,7 @@ public class MainActivity extends BridgeActivity {
             w.evaluateJavascript(js, null);
         } catch (Exception ignored) {}
     }
-    @Override public void onPause() { super.onPause(); durdu = System.currentTimeMillis(); }
+    @Override public void onPause() { super.onPause(); yol2.removeCallbacks(cubukIs); durdu = System.currentTimeMillis(); }
 
     /** Giriş sayfası uzun süre arka planda kaldıysa güvenlik jetonu eskir; sayfayı yenile */
     private void yenileBayat() {
@@ -189,4 +189,39 @@ public class MainActivity extends BridgeActivity {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) { iste.add(Manifest.permission.ACCESS_FINE_LOCATION); iste.add(Manifest.permission.ACCESS_COARSE_LOCATION); }
         if (!iste.isEmpty()) ActivityCompat.requestPermissions(this, iste.toArray(new String[0]), 7001);
     }
+
+    /** Durum çubuğu: sayfanın üst rengini alır; çubuğun arka planını ona çevirir, saat/simgeleri okunur renkte tutar. */
+    private int sonCubuk = 0;
+    private final Runnable cubukIs = new Runnable() {
+        @Override public void run() {
+            try {
+                if (getBridge() != null && getBridge().getWebView() != null) {
+                    final String js = "(function(){try{function p(c){var m=/rgba?\\(([^)]+)\\)/.exec(c||'');if(!m)return null;var a=m[1].split(',').map(function(x){return parseFloat(x)});if(a.length>3&&a[3]<0.6)return null;return a[0]+','+a[1]+','+a[2];}"
+                        + "var e=document.elementFromPoint(Math.floor(window.innerWidth/2),3);while(e){var cs=getComputedStyle(e);var r=p(cs.backgroundColor);if(r)return r;var bi=cs.backgroundImage||'';if(bi.indexOf('gradient')>-1){var g=/rgba?\\([^)]+\\)/.exec(bi);if(g){r=p(g[0]);if(r)return r;}}e=e.parentElement;}"
+                        + "return p(getComputedStyle(document.body).backgroundColor)||p(getComputedStyle(document.documentElement).backgroundColor)||'';}catch(x){return '';}})()";
+                    getBridge().getWebView().evaluateJavascript(js, v -> {
+                        try {
+                            if (v == null) return;
+                            String t = v.replace("\"", "").trim();
+                            if (t.isEmpty() || t.equals("null")) return;
+                            String[] a = t.split(",");
+                            if (a.length < 3) return;
+                            int r = (int) Math.round(Double.parseDouble(a[0].trim())), g = (int) Math.round(Double.parseDouble(a[1].trim())), b = (int) Math.round(Double.parseDouble(a[2].trim()));
+                            int renk = Color.rgb(r, g, b);
+                            if (renk == sonCubuk) return;
+                            sonCubuk = renk;
+                            View kok = findViewById(android.R.id.content);
+                            if (kok != null) kok.setBackgroundColor(renk);
+                            getWindow().getDecorView().setBackgroundColor(renk);
+                            boolean acik = (0.299 * r + 0.587 * g + 0.114 * b) > 150;
+                            WindowInsetsControllerCompat c = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+                            if (c != null) { c.setAppearanceLightStatusBars(acik); c.setAppearanceLightNavigationBars(acik); }
+                        } catch (Throwable ignored) {}
+                    });
+                }
+            } catch (Throwable ignored) {}
+            yol2.postDelayed(this, 800);
+        }
+    };
+    private void cubukDongusu() { yol2.removeCallbacks(cubukIs); yol2.postDelayed(cubukIs, 400); }
 }
