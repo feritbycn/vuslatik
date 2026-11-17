@@ -7,7 +7,7 @@
 require_once __DIR__ . '/config/baglan.php';
 $islem = (string)($_GET['islem'] ?? $_POST['islem'] ?? '');
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') tb_json(['ok' => false, 'hata' => 'Geçersiz istek.'], 405);
-if (!csrf_dogru()) tb_json(['ok' => false, 'hata' => 'Oturum doğrulaması başarısız. Sayfayı yenileyip tekrar deneyin.'], 419);
+if (!csrf_dogru()) tb_json(['ok' => false, 'hata' => 'Oturum doğrulaması başarısız. Sayfayı yenileyip tekrar deneyin.', 'yenile' => true, 'csrf' => csrf_token()], 419);
 
 function oturum_sifre_kontrol($s)
 {

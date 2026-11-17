@@ -35,8 +35,19 @@ public class MainActivity extends BridgeActivity {
         }
     };
 
-    @Override public void onResume() { super.onResume(); onPlanda = true; denetim.removeCallbacks(servisDenetle); denetim.post(servisDenetle); linkAc(getIntent()); }
-    @Override public void onPause() { super.onPause(); onPlanda = false; }
+    private long durdu = 0;
+    @Override public void onResume() { super.onResume(); onPlanda = true; yenileBayat(); denetim.removeCallbacks(servisDenetle); denetim.post(servisDenetle); linkAc(getIntent()); }
+    @Override public void onPause() { super.onPause(); onPlanda = false; durdu = System.currentTimeMillis(); }
+
+    /** Giriş sayfası uzun süre arka planda kaldıysa güvenlik jetonu eskir; sayfayı yenile */
+    private void yenileBayat() {
+        try {
+            if (durdu > 0 && System.currentTimeMillis() - durdu > 5 * 60 * 1000L) {
+                String u = getBridge().getWebView().getUrl();
+                if (u != null && u.contains("giris.php")) getBridge().getWebView().reload();
+            }
+        } catch (Exception ignored) {}
+    }
     @Override protected void onNewIntent(Intent intent) { super.onNewIntent(intent); setIntent(intent); linkAc(intent); }
 
     /** Bildirime dokunulunca ilgili sayfayı aç */

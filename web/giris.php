@@ -7,6 +7,7 @@
 require_once __DIR__ . '/config/baglan.php';
 if (TB_KURUM_ID > 0 && !empty($_SESSION['kullanici_id']) && !isset($_GET['degistir'])) { header('Location: ik.php'); exit; }
 $a = pf_ayarlar($db);
+if (!empty($a['logo']) && preg_match('~^http://~i', (string)$a['logo'])) $a['logo'] = 'https://' . substr((string)$a['logo'], 7);   // karışık içerik (http logo) mobil uygulamada engellenir
 $h = function ($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); };
 $kurumlar = [];
 $otomatik = $a['kurum_secimi'] === 'otomatik';

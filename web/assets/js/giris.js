@@ -54,6 +54,13 @@
 
     // ── İstek ──
     function istek(p) {
+        return istek1(p).then(function (j) {
+            // Sayfa uzun süre açık kalınca oturum/jeton eskir: sunucunun verdiği yeni jetonla isteği bir kez kendiliğinden tekrarla
+            if (j && j.yenile && j.csrf && !p._tekrar) { csrf = j.csrf; var q = {}; Object.keys(p).forEach(function (k) { q[k] = p[k]; }); q._tekrar = 1; return istek1(q); }
+            return j;
+        });
+    }
+    function istek1(p) {
         var fd = new FormData(); Object.keys(p).forEach(function (k) { fd.append(k, p[k]); }); fd.append('_csrf', csrf);
         return fetch('oturum_islem.php', { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'X-CSRF-Token': csrf } })
             .then(function (r) { return r.text().then(function (t) { try { return JSON.parse(t); } catch (e) { return { ok: false, hata: 'Sunucu yanıtı okunamadı (HTTP ' + r.status + (r.redirected ? ', yönlendirildi' : '') + '): ' + t.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 220) }; } }); })
