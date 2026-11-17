@@ -11,7 +11,8 @@ $uid = intval($_SESSION['kullanici_id'] ?? 0);
 $csrf = (string)($_SESSION['tb_csrf'] ?? '');
 if ($uid <= 0) { http_response_code(401); exit('Oturum gerekli'); }
 $Y = vy_coz($db, 'ik', $uid);
-if (empty($Y['kurucu'])) { http_response_code(403); exit('Bu sayfa yalnızca kurum yetkilisine açıktır.'); }
+$rol = ($q0 = $db->query("SELECT rol FROM kullanicilar WHERE id = $uid")) ? (string)($q0->fetch_row()[0] ?? '') : '';
+if (empty($Y['kurucu']) && empty($Y['ik_duzenle']) && $rol !== 'kurucu' && $rol !== 'admin' && empty($_SESSION['destek'])) { http_response_code(403); exit('Bu sayfa yalnızca kurum yetkilisine açıktır. (hesap rolü: ' . htmlspecialchars($rol, ENT_QUOTES, 'UTF-8') . ')'); }
 ik_kanal_sema($db);
 function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 $mesaj = '';
