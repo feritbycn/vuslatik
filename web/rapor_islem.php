@@ -65,7 +65,8 @@ if ($islem === 'pano') {
     }
     $tat = rp_tatil_haritasi($db, $bugun, date('Y-m-d', strtotime('+30 day'))); $tatiller = [];
     foreach ($tat as $t => $v) { if (count($tatiller) >= 4) break; $tatiller[] = ['tarih' => $t, 'ad' => $v['ad'], 'yarim' => !empty($v['yarim']), 'kalan' => (int)round((strtotime($t) - strtotime($bugun)) / 86400)]; }
-    rpc(['ok' => true, 'dogum' => $dogum, 'izinde' => $izinde, 'yaklasan_izin' => $yak, 'yildonumu' => array_slice($yild, 0, 8), 'tatiller' => $tatiller]);
+    $dgTan = 0; $qt = $db->query("SELECT COUNT(*) FROM kullanicilar k LEFT JOIN ik_personel p ON p.kullanici_id = k.id WHERE k.aktif = 1 AND (p.isten_cikis IS NULL OR p.isten_cikis > CURDATE()) AND k.dogum_tarihi IS NOT NULL AND k.dogum_tarihi <> '0000-00-00'"); if ($qt && ($rt = $qt->fetch_row())) $dgTan = intval($rt[0]);
+    rpc(['ok' => true, 'dogum_tanimli' => $dgTan, 'dogum' => $dogum, 'izinde' => $izinde, 'yaklasan_izin' => $yak, 'yildonumu' => array_slice($yild, 0, 8), 'tatiller' => $tatiller]);
 }
 
 // ── Rapor seçenekleri ──

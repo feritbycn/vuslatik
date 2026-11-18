@@ -331,13 +331,14 @@ function ik_ek_calistir($db, $uid, $Y, $girdi, $islem)
         if ((strtotime($bit) - strtotime($bas)) / 86400 > 62) $bit = date('Y-m-d', strtotime($bas . ' +62 days'));
         $gorur = !empty($Y['ik_personel_gor']) || !empty($Y['ik_izin_onay']);
         $ev = [];
-        $q = $db->query("SELECT t.id, t.kullanici_id, t.baslangic, t.bitis, t.tur, t.durum, k.ad_soyad FROM ik_izin_talepleri t JOIN kullanicilar k ON k.id = t.kullanici_id WHERE t.durum IN ('onaylandi','beklemede') AND t.baslangic <= '$bit' AND t.bitis >= '$bas'" . ($gorur ? '' : " AND t.kullanici_id = $uid"));
-        if ($q) while ($r = $q->fetch_assoc()) $ev[] = ['tip' => 'izin', 'id' => intval($r['id']), 'baslik' => $r['ad_soyad'], 'alt' => (IK_IZIN_TURLERI[$r['tur']] ?? $r['tur']) . ($r['durum'] === 'beklemede' ? ' · onay bekliyor' : ''), 'bas' => $r['baslangic'], 'bit' => $r['bitis'], 'bekliyor' => $r['durum'] === 'beklemede', 'kid' => intval($r['kullanici_id'])];
+        $q = $db->query("SELECT t.id, t.kullanici_id, t.baslangic, t.bitis, t.tur, t.durum, k.ad_soyad FROM ik_izin_talepleri t JOIN kullanicilar k ON k.id = t.kullanici_id WHERE t.durum IN ('onaylandi','beklemede') AND t.baslangic <= '$bit' AND t.bitis >= '$bas'" . ($gorur ? '' : " AND (t.durum = 'onaylandi' OR t.kullanici_id = $uid)"));
+        if ($q) while ($r = $q->fetch_assoc()) $ev[] = ['tip' => 'izin', 'id' => intval($r['id']), 'baslik' => $r['ad_soyad'], 'alt' => (($gorur || intval($r['kullanici_id']) === $uid) ? (IK_IZIN_TURLERI[$r['tur']] ?? $r['tur']) : 'izinde') . ($r['durum'] === 'beklemede' ? ' · onay bekliyor' : ''), 'bas' => $r['baslangic'], 'bit' => $r['bitis'], 'bekliyor' => $r['durum'] === 'beklemede', 'kid' => intval($r['kullanici_id'])];
         try { require_once __DIR__ . '/rapor_ortak.php'; foreach (rp_tatil_haritasi($db, $bas, $bit) as $t => $x) if ($t >= $bas && $t <= $bit) $ev[] = ['tip' => 'tatil', 'baslik' => $x['ad'] ?? '', 'alt' => !empty($x['yarim']) ? 'yarım gün' : 'resmî tatil', 'bas' => $t, 'bit' => $t]; } catch (Throwable $e) {}
-        if ($gorur) {
-            $q = $db->query("SELECT k.ad_soyad, k.dogum_tarihi, p.ise_giris FROM kullanicilar k LEFT JOIN ik_personel p ON p.kullanici_id = k.id WHERE k.aktif = 1 AND p.isten_cikis IS NULL");
+        {
+            $q = $db->query("SELECT k.ad_soyad, k.dogum_tarihi, p.ise_giris FROM kullanicilar k LEFT JOIN ik_personel p ON p.kullanici_id = k.id WHERE k.aktif = 1 AND (p.isten_cikis IS NULL OR p.isten_cikis > CURDATE())");
             $y1 = (int)date('Y', strtotime($bas)); $y2 = (int)date('Y', strtotime($bit));
             if ($q) while ($r = $q->fetch_assoc()) foreach (['dogum' => $r['dogum_tarihi'], 'yildonumu' => $r['ise_giris']] as $tip => $tar) {
+                if ($tip === 'yildonumu' && !$gorur) continue;   // iş yıldönümü yalnız yetkililere; doğum günü herkese
                 if (!$tar || $tar === '0000-00-00') continue; $md = date('m-d', strtotime($tar));
                 for ($y = $y1; $y <= $y2; $y++) { $g = ($md === '02-29' && !checkdate(2, 29, $y)) ? '02-28' : $md; $t = "$y-$g"; if ($t < $bas || $t > $bit) continue; $yil = $y - (int)date('Y', strtotime($tar)); if ($tip === 'yildonumu' && $yil < 1) continue;
                     $ev[] = ['tip' => $tip, 'baslik' => $r['ad_soyad'], 'alt' => $tip === 'dogum' ? 'doğum günü' : $yil . '. iş yılı', 'bas' => $t, 'bit' => $t]; }
