@@ -266,9 +266,9 @@
             })() : '';
             var ac = function (id) { return W[id] !== false; };
             /* Ana sayfa: kart panosu (sütunlara akan kartlar; kenarlar boş kalmaz) */
-            var DYK = istek('duyuru_islem.php');
+            var DYK = istek('duyuru_islem.php'), RPK = istek('rapor_islem.php');
             Promise.all([
-                getir({ islem: 'pano' }).catch(function () { return null; }),
+                RPK.getir({ islem: 'pano' }).catch(function (e) { return { _hata: (e && e.message) || 'Veri alınamadı.' }; }),
                 getir({ islem: 'personel', id: V.ben }).catch(function () { return null; }),
                 DYK.getir({ islem: 'duyurular' }).catch(function () { return null; }),
                 getir({ islem: 'panel_ek' }).catch(function () { return null; })
@@ -310,13 +310,13 @@
                 // 5) Etkinlik takvimi
                 if (kapali.indexOf('izin_takvimi') < 0) W2.push(['takvim', kart('takvim', 'fa-calendar-days', 'Etkinlik takvimi', (pek.notlar || []).length ? '<ul class="pn-liste">' + pek.notlar.slice(0, 6).map(function (n) { return '<li data-git="izin_takvimi" class="tik"><span>' + esc(n.baslik) + '</span><b>' + gk(n.tarih) + (n.saat ? ' · ' + esc(n.saat) : '') + '</b></li>'; }).join('') + '</ul>' : bos('Yaklaşan şirket etkinliği bulunmuyor.'), tumu('izin_takvimi', 'Takvimi Aç'), '#64748b')]);
                 // 6) Yaklaşan doğum günleri
-                W2.push(['kutlama', kart('kutlama', 'fa-cake-candles', 'Yaklaşan doğum günleri', (pano.dogum || []).length ? '<ul class="pn-liste pn-kisi">' + pano.dogum.slice(0, 6).map(function (d) { return '<li>' + satir(d, '', '<b>' + (d.kalan === 0 ? 'Bugün' : gk(d.tarih)) + '</b>') + '</li>'; }).join('') + '</ul>' : bos(pano.dogum_tanimli === 0 ? 'Personel kartlarında doğum tarihi girilmemiş.' : 'Önümüzdeki 30 günde doğum günü yok.' + (pano.dogum_tanimli ? ' (' + pano.dogum_tanimli + ' kişinin doğum tarihi tanımlı)' : '')), '', '#e0457b')]);
+                W2.push(['kutlama', kart('kutlama', 'fa-cake-candles', 'Yaklaşan doğum günleri', (pano.dogum || []).length ? '<ul class="pn-liste pn-kisi">' + pano.dogum.slice(0, 6).map(function (d) { return '<li>' + satir(d, '', '<b>' + (d.kalan === 0 ? 'Bugün' : gk(d.tarih)) + '</b>') + '</li>'; }).join('') + '</ul>' : bos(pano._hata ? 'Veri alınamadı: ' + pano._hata : pano.dogum_tanimli === 0 ? 'Personel kartlarında doğum tarihi girilmemiş.' : 'Önümüzdeki 30 günde doğum günü yok.' + (pano.dogum_tanimli ? ' (' + pano.dogum_tanimli + ' kişinin doğum tarihi tanımlı)' : '')), '', '#e0457b')]);
                 // 7) Yaklaşan izinler (şu an izinde + yakında çıkacaklar)
                 (function () {
                     var iz1 = (pano.izinde || []).map(function (k) { return satir(k, '<em>' + sayi(k.gun || k.kalan_gun || 0) + 'g</em>', '<b class="yesil">' + (k.kalan_gun > 1 ? 'Dönüş ' + gk(k.donus) : 'Son gün') + '</b>'); });
                     var iz2 = (pano.yaklasan_izin || []).map(function (k) { return satir(k, '<em>' + sayi(k.gun) + 'g</em>', '<b>' + gk(k.baslangic) + '</b>'); });
                     var hepsi = iz1.concat(iz2);
-                    W2.push(['izinli', kart('izinli', 'fa-plane-departure', 'Yaklaşan izinler', hepsi.length ? '<ul class="pn-liste pn-kisi">' + hepsi.slice(0, 7).map(function (h) { return '<li>' + h + '</li>'; }).join('') + '</ul>' : bos('Şu an izinde olan ya da yakında izne çıkacak kimse yok.'), tumu('izin_takvimi'), '#334e8a')]);
+                    W2.push(['izinli', kart('izinli', 'fa-plane-departure', 'Yaklaşan izinler', hepsi.length ? '<ul class="pn-liste pn-kisi">' + hepsi.slice(0, 7).map(function (h) { return '<li>' + h + '</li>'; }).join('') + '</ul>' : bos(pano._hata ? 'Veri alınamadı: ' + pano._hata : 'Şu an izinde olan ya da yakında izne çıkacak kimse yok.'), tumu('izin_takvimi'), '#334e8a')]);
                 })();
                 // 8) Onay bekleyenler: izin / masraf / avans ayrı kartlar
                 (function () {

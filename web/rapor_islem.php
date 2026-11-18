@@ -17,7 +17,7 @@ if ($uid <= 0) rph('Oturum süresi doldu, lütfen yeniden giriş yapın.', 401);
 ik_sema($db); rp_sema($db); giris_sema($db);
 $Y = vy_coz($db, 'ik', $uid);
 if (empty($Y['ik_erisim'])) rph('İnsan Kaynakları sayfasına erişim yetkiniz yok.', 403);
-try { require_once __DIR__ . '/platform_paket.php'; pf_paket_sema($db); if (in_array('raporlar', pf_paket_kilitli($db), true)) rph('Bu özellik kurumunuzun paketinde yok veya süresi bitti.', 402); } catch (Throwable $e) {}
+try { require_once __DIR__ . '/platform_paket.php'; pf_paket_sema($db); if (($_GET['islem'] ?? $_POST['islem'] ?? '') !== 'pano' && in_array('raporlar', pf_paket_kilitli($db), true)) rph('Bu özellik kurumunuzun paketinde yok veya süresi bitti.', 402); } catch (Throwable $e) {}
 $girdi = $_POST + $_GET;
 $islem = (string)($_GET['islem'] ?? $girdi['islem'] ?? '');
 $RAPOR = !empty($Y['ik_rapor_gor']); $MYON = !empty($Y['ik_mesai_yonet']);
