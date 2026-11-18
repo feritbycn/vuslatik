@@ -399,7 +399,18 @@ function ik_ek_calistir($db, $uid, $Y, $girdi, $islem)
         $q = $db->query("SELECT id, tarih, saat, baslik, renk FROM ik_notlar WHERE tarih BETWEEN '$bugun' AND '$son' AND kullanici_id = $uid ORDER BY tarih, saat LIMIT 8");
         if ($q) while ($r = $q->fetch_assoc()) $notlar[] = ['id' => intval($r['id']), 'tarih' => $r['tarih'], 'saat' => $r['saat'], 'baslik' => $r['baslik'], 'renk' => $r['renk']];
         $loglar = [];
-        ikc(['ok' => true, 'notlar' => $notlar, 'loglar' => $loglar, 'kapali' => ik_ek_kapali($db)]);
+        // Taleplerim: kullanıcının kendi son talepleri (izin · avans · masraf · mesai) — durumlarıyla
+        $tal = []; $dr = ['beklemede' => 'Onay bekliyor', 'onaylandi' => 'Onaylandı', 'reddedildi' => 'Reddedildi', 'iptal' => 'İptal edildi'];
+        $q = $db->query("SELECT id, tur, baslangic, bitis, durum, olusturma_tarihi t FROM ik_izin_talepleri WHERE kullanici_id = $uid ORDER BY id DESC LIMIT 8");
+        if ($q) while ($r = $q->fetch_assoc()) $tal[] = ['tip' => 'izin', 'id' => intval($r['id']), 'baslik' => (IK_IZIN_TURLERI[$r['tur']] ?? $r['tur']), 'alt' => date('d.m.Y', strtotime($r['baslangic'])) . ($r['bitis'] !== $r['baslangic'] ? ' – ' . date('d.m.Y', strtotime($r['bitis'])) : ''), 'durum' => $r['durum'], 'durum_ad' => $dr[$r['durum']] ?? $r['durum'], 'ts' => strtotime($r['t']), 'link' => 'ik.php?sekme=izinler&talep=' . intval($r['id'])];
+        $q = $db->query("SELECT id, tutar, istenen_tarih, durum, olusturma_tarihi t FROM ik_avanslar WHERE kullanici_id = $uid ORDER BY id DESC LIMIT 8");
+        if ($q) while ($r = $q->fetch_assoc()) $tal[] = ['tip' => 'avans', 'id' => intval($r['id']), 'baslik' => 'Avans', 'alt' => number_format((float)$r['tutar'], 2, ',', '.') . ' ₺', 'durum' => $r['durum'], 'durum_ad' => $dr[$r['durum']] ?? $r['durum'], 'ts' => strtotime($r['t']), 'link' => 'ik.php?sekme=avanslar&id=' . intval($r['id'])];
+        $q = $db->query("SELECT id, kategori, tutar, durum, olusturma_tarihi t FROM ik_masraflar WHERE kullanici_id = $uid ORDER BY id DESC LIMIT 8");
+        if ($q) while ($r = $q->fetch_assoc()) $tal[] = ['tip' => 'masraf', 'id' => intval($r['id']), 'baslik' => 'Masraf', 'alt' => number_format((float)$r['tutar'], 2, ',', '.') . ' ₺', 'durum' => $r['durum'], 'durum_ad' => $dr[$r['durum']] ?? $r['durum'], 'ts' => strtotime($r['t']), 'link' => 'ik.php?sekme=masraflar&id=' . intval($r['id'])];
+        $q = @$db->query("SELECT id, tarih, baslangic, bitis, durum, olusturma t FROM ik_mesailer WHERE kullanici_id = $uid AND giren_id = $uid ORDER BY id DESC LIMIT 8");
+        if ($q) while ($r = $q->fetch_assoc()) $tal[] = ['tip' => 'mesai', 'id' => intval($r['id']), 'baslik' => 'Fazla mesai', 'alt' => date('d.m.Y', strtotime($r['tarih'])) . ' · ' . $r['baslangic'] . '–' . $r['bitis'], 'durum' => $r['durum'], 'durum_ad' => $dr[$r['durum']] ?? $r['durum'], 'ts' => strtotime($r['t']), 'link' => 'ik.php?sekme=mesailer&id=' . intval($r['id'])];
+        usort($tal, function ($a, $b) { return $b['ts'] <=> $a['ts']; });
+        ikc(['ok' => true, 'notlar' => $notlar, 'loglar' => $loglar, 'taleplerim' => array_slice($tal, 0, 8), 'kapali' => ik_ek_kapali($db)]);
     }
     ikh('Geçersiz işlem.');
 }

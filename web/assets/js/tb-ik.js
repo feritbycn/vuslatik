@@ -298,6 +298,13 @@
                     var liste = son.length ? '<ul class="pn-liste pn-izin">' + son.map(function (t) { return '<li><i class="fa-solid ' + (t.durum === 'onaylandi' ? 'fa-circle-check ok' : 'fa-hourglass-half bk') + '"></i><span>' + esc(t.tur_ad) + '</span><em>' + sayi(t.gun) + 'g</em><b>' + gk(t.baslangic) + '</b></li>'; }).join('') + '</ul>' : '';
                     W2.push(['bakiye', kart('bakiye', 'fa-umbrella-beach', 'İzin bilgilerim', govde + liste, tumu('izinler'), '#2563eb')]);
                 })();
+                // 2b) Taleplerim: kendi taleplerim ve durumları (izin · avans · masraf · mesai)
+                (function () {
+                    var tl = pek.taleplerim || [], ik = { izin: 'fa-umbrella-beach', avans: 'fa-hand-holding-dollar', masraf: 'fa-receipt', mesai: 'fa-moon' };
+                    var dik = function (d) { return d === 'onaylandi' ? '<i class="fa-solid fa-circle-check ok"></i>' : d === 'reddedildi' ? '<i class="fa-solid fa-circle-xmark" style="color:#ef4444"></i>' : d === 'iptal' ? '<i class="fa-solid fa-ban" style="color:#94a3b8"></i>' : '<i class="fa-solid fa-hourglass-half bk"></i>'; };
+                    var gv = tl.length ? '<ul class="pn-liste pn-izin">' + tl.map(function (t) { return '<li data-talep-link="' + esc(t.link) + '" style="cursor:pointer">' + dik(t.durum) + '<span><i class="fa-solid ' + (ik[t.tip] || 'fa-file') + '" style="opacity:.55;margin-right:6px"></i>' + esc(t.baslik) + ' · ' + esc(t.alt) + '</span><em>' + esc(t.durum_ad) + '</em></li>'; }).join('') + '</ul>' : bos('Henüz bir talebiniz yok.');
+                    W2.push(['taleplerim', kart('taleplerim', 'fa-clipboard-list', 'Taleplerim', gv, '', '#7c3aed')]);
+                })();
                 // 3) Çalışan dağılımı
                 if (o.departmanlar && o.departmanlar.length) {
                     var top = o.departmanlar.reduce(function (t, d) { return t + d.n; }, 0) || 1, acc = 0, R = 15.9155, kol = ['#4f6bd6', '#8fd16b', '#fbc34a', '#ef6a6a', '#6ec6e8', '#3aa876', '#f59e6b', '#b07be0', '#e87ab8', '#64748b'];
@@ -335,7 +342,7 @@
                     var t = d.tam || d.ozet || ''; return '<article class="pn-dy' + (d.okundu ? '' : ' yeni') + '"><div class="pn-dy-ust"><b>' + esc(d.baslik) + '</b>' + (d.okundu ? '' : '<i class="pn-dy-nokta" title="Okunmadı"></i>') + '</div>' +
                         (t ? '<div class="pn-dy-metin">' + esc(t) + '</div>' : '') + '<div class="pn-dy-alt"><em>' + tarihKisa(d.zaman) + (d.yazar ? ' · ' + esc(d.yazar) : '') + '</em><span>' + (t.length > 110 ? '<button type="button" class="pn-dy-ac" data-pn-ac><span>Devamı</span> <i class="fa-solid fa-chevron-down"></i></button>' : '') + '<button type="button" class="pn-dy-detay" data-duyuru="' + d.id + '">Detay</button></span></div></article>';
                 }).join('') + '</div>' : bos('Henüz duyuru yok.'), tumu('duyurular', 'Tüm duyurular'), '#f43f5e')]);
-                var ozetListe = [['profil', 'Profil kartım', !!kisi], ['bakiye', 'İzin bilgilerim', true], ['birim', 'Çalışan dağılımı', !!(o.departmanlar && o.departmanlar.length)], ['tatil', 'Resmi tatiller', true], ['takvim', 'Etkinlik takvimi', kapali.indexOf('izin_takvimi') < 0], ['kutlama', 'Yaklaşan doğum günleri', true], ['izinli', 'Yaklaşan izinler', true], ['onay', 'Onay bekleyen talepler', W2.some(function (q) { return q[0] === 'onay'; })], ['belge', 'Süresi dolacak belgeler', !!o.biten_belgeler], ['duyuru', 'Yeni ne var? (duyurular)', !!duy]];
+                var ozetListe = [['profil', 'Profil kartım', !!kisi], ['bakiye', 'İzin bilgilerim', true], ['taleplerim', 'Taleplerim', true], ['birim', 'Çalışan dağılımı', !!(o.departmanlar && o.departmanlar.length)], ['tatil', 'Resmi tatiller', true], ['takvim', 'Etkinlik takvimi', kapali.indexOf('izin_takvimi') < 0], ['kutlama', 'Yaklaşan doğum günleri', true], ['izinli', 'Yaklaşan izinler', true], ['onay', 'Onay bekleyen talepler', W2.some(function (q) { return q[0] === 'onay'; })], ['belge', 'Süresi dolacak belgeler', !!o.biten_belgeler], ['duyuru', 'Yeni ne var? (duyurular)', !!duy]];
                 icerik.innerHTML = '<div class="pn-ust"><div><small>Merhaba ' + esc(ilkAd) + '!</small><h2>Bugün <b>' + esc(gun.replace(/^(\d+ \S+ \d+) (\S+)$/, '$1, $2')) + '</b></h2></div><div class="pn-ust-btn"><button type="button" class="ikm-btn" data-panel-ozel title="Panelde görünecek kartları seçin"><i class="fa-solid fa-sliders"></i> <span>Paneli özelleştir</span></button></div></div>' +
                     '<div class="pn-pano">' + W2.filter(function (q) { return ac(q[0]); }).map(function (q) { return q[1]; }).join('') + '</div>';
                 rozetGuncelle();
@@ -354,6 +361,7 @@
         }).catch(function (e) { icerik.innerHTML = hataKutu(e.message); });
     }
     icerik.addEventListener('click', function (e) {
+        var tl = e.target.closest('[data-talep-link]'); if (tl) { location.href = tl.getAttribute('data-talep-link'); return; }
         var g = e.target.closest('[data-git]');
         if (g) { var h = g.dataset.git; if (h === 'kartim') kartAc(V.ben); else if (h === 'izinler-bekleyen') { izinF.kapsam = 'tum'; izinF.durum = 'beklemede'; sekmeAc('izinler'); } else if (h === 'izinler-bana') { izinF.kapsam = 'bana'; izinF.durum = ''; sekmeAc('izinler'); } else sekmeAc(h); return; }
         if (e.target.closest('[data-yeni-izin]')) { talepOlustur(); return; }
