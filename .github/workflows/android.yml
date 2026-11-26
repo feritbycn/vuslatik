@@ -42,16 +42,16 @@ jobs:
           if [ -z "$GOOGLE_SERVICES_JSON_B64" ]; then echo "::warning::GOOGLE_SERVICES_JSON_B64 yok — uygulama derlenir ama anlık bildirim çalışmaz"; else printf %s "$GOOGLE_SERVICES_JSON_B64" | tr -d ' \r\n\t"' | base64 -d > "$RUNNER_TEMP/gs.raw" && python3 - "$RUNNER_TEMP/gs.raw" android/app/google-services.json <<'PY'
           import sys, json, codecs
           b = open(sys.argv[1], 'rb').read()
-          if b.startswith(codecs.BOM_UTF16_LE) or b.startswith(codecs.BOM_UTF16_BE) or b'\x00' in b[:8]:
-              t = b.decode('utf-16')
-          else:
-              t = b.decode('utf-8-sig')
-          t = t.lstrip('\ufeff')
           try:
+              if b.startswith(codecs.BOM_UTF16_LE) or b.startswith(codecs.BOM_UTF16_BE) or b'\x00' in b[:8]:
+                  t = b.decode('utf-16')
+              else:
+                  t = b.decode('utf-8-sig')
+              t = t.lstrip('\ufeff')
               json.loads(t)
           except Exception as e:
-              print('::error::google-services.json çözülemedi (' + str(e) + '); ilk baytlar: ' + repr(b[:12]))
-              sys.exit(1)
+              print('::warning::GOOGLE_SERVICES_JSON_B64 geçerli bir google-services.json değil (' + str(e) + '); anlık bildirim olmadan derlenecek. Secret içine Firebase\'den indirilen google-services.json dosyasının base64 hâli konmalı.')
+              sys.exit(0)
           open(sys.argv[2], 'w', encoding='utf-8').write(t)
           print('google-services.json hazır (' + str(len(t)) + ' karakter)')
           PY
