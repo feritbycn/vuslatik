@@ -39,7 +39,23 @@ jobs:
         env:
           GOOGLE_SERVICES_JSON_B64: ${{ secrets.GOOGLE_SERVICES_JSON_B64 }}
         run: |
-          if [ -z "$GOOGLE_SERVICES_JSON_B64" ]; then echo "::warning::GOOGLE_SERVICES_JSON_B64 yok — uygulama derlenir ama anlık bildirim çalışmaz"; else echo "$GOOGLE_SERVICES_JSON_B64" | base64 -d > android/app/google-services.json; fi
+          if [ -z "$GOOGLE_SERVICES_JSON_B64" ]; then echo "::warning::GOOGLE_SERVICES_JSON_B64 yok — uygulama derlenir ama anlık bildirim çalışmaz"; else printf %s "$GOOGLE_SERVICES_JSON_B64" | tr -d ' \r\n\t"' | base64 -d > "$RUNNER_TEMP/gs.raw" && python3 - "$RUNNER_TEMP/gs.raw" android/app/google-services.json <<'PY'
+          import sys, json, codecs
+          b = open(sys.argv[1], 'rb').read()
+          if b.startswith(codecs.BOM_UTF16_LE) or b.startswith(codecs.BOM_UTF16_BE) or b'\x00' in b[:8]:
+              t = b.decode('utf-16')
+          else:
+              t = b.decode('utf-8-sig')
+          t = t.lstrip('\ufeff')
+          try:
+              json.loads(t)
+          except Exception as e:
+              print('::error::google-services.json çözülemedi (' + str(e) + '); ilk baytlar: ' + repr(b[:12]))
+              sys.exit(1)
+          open(sys.argv[2], 'w', encoding='utf-8').write(t)
+          print('google-services.json hazır (' + str(len(t)) + ' karakter)')
+          PY
+          fi
 
       - name: Capacitor senkronu
         run: npx cap sync android
