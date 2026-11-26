@@ -50,7 +50,9 @@ jobs:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
         run: |
           if [ -n "$KEYSTORE_B64" ]; then
-            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            printf %s "$KEYSTORE_B64" | tr -d ' \r\n\t"' | sed 's/^ANDROID_KEYSTORE_B64=//' > "$RUNNER_TEMP/ks.b64"
+            echo "Keystore secret uzunluğu: $(wc -c < "$RUNNER_TEMP/ks.b64") (beklenen 3516), geçersiz karakter sayısı: $(tr -d 'A-Za-z0-9+/=' < "$RUNNER_TEMP/ks.b64" | wc -c)"
+            base64 -d "$RUNNER_TEMP/ks.b64" > "$RUNNER_TEMP/release.jks" || { echo "::error::ANDROID_KEYSTORE_B64 geçersiz: uzunluk ve karakterler yukarıda"; exit 1; }
             echo "KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
             echo "imzali=1" >> "$GITHUB_OUTPUT"
           else
