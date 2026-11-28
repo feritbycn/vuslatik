@@ -1,7 +1,12 @@
 package com.bilge360.ik;
 
 import android.Manifest;
+import android.app.AppOpsManager;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -10,6 +15,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
@@ -20,7 +26,9 @@ import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Telefonun gerçek GPS/ağ konumunu verir ve SAHTE KONUM (mock location) tespit eder.
@@ -143,5 +151,58 @@ public class KonumGuvenliPlugin extends Plugin {
         String id = call.getString("id", "");
         dinleDur(id);
         call.resolve();
+    }
+
+    /**
+     * Geliştirici seçeneklerinde "Sahte konum uygulaması seç" ile bir uygulama SEÇİLİ mi?
+     * Android 6'dan beri bu ayar doğrudan okunamaz; bunun yerine telefondaki (başlatıcısı olan) uygulamalardan
+     * ACCESS_MOCK_LOCATION izni isteyenlerin "mock_location" işlem izni (AppOps) verilmiş mi diye bakılır.
+     * Seçili uygulama varsa adları döner. Konum ölçümünün kendisindeki "sahte" bayrağından bağımsız ek bir kontroldür.
+     */
+    @PluginMethod
+    public void sahteUygulamaKontrol(PluginCall call) {
+        JSArray liste = new JSArray();
+        try {
+            Context c = getContext();
+            PackageManager pm = c.getPackageManager();
+            AppOpsManager ao = (AppOpsManager) c.getSystemService(Context.APP_OPS_SERVICE);
+            Intent i = new Intent(Intent.ACTION_MAIN);
+            i.addCategory(Intent.CATEGORY_LAUNCHER);
+            Set<String> paketler = new HashSet<>();
+            for (ResolveInfo ri : pm.queryIntentActivities(i, 0)) {
+                if (ri.activityInfo != null && ri.activityInfo.packageName != null) paketler.add(ri.activityInfo.packageName);
+            }
+            for (String p : paketler) {
+                if (p.equals(c.getPackageName())) continue;
+                try {
+                    PackageInfo pi = pm.getPackageInfo(p, PackageManager.GET_PERMISSIONS);
+                    if (pi.requestedPermissions == null || pi.applicationInfo == null) continue;
+                    boolean ister = false;
+                    for (String izin : pi.requestedPermissions) { if ("android.permission.ACCESS_MOCK_LOCATION".equals(izin)) { ister = true; break; } }
+                    if (!ister) continue;
+                    if (sahteSecili(ao, pi.applicationInfo.uid, p)) {
+                        CharSequence ad = pm.getApplicationLabel(pi.applicationInfo);
+                        liste.put(ad != null ? ad.toString() : p);
+                    }
+                } catch (Throwable ignored) {}
+            }
+        } catch (Throwable ignored) {}
+        JSObject r = new JSObject();
+        r.put("paketler", liste);
+        r.put("var", liste.length() > 0);
+        call.resolve(r);
+    }
+
+    private static boolean sahteSecili(AppOpsManager ao, int uid, String paket) {
+        if (ao == null) return false;
+        try {
+            int mod;
+            if (Build.VERSION.SDK_INT >= 29) {
+                mod = ao.unsafeCheckOpNoThrow("android:mock_location", uid, paket);
+            } else {
+                mod = (Integer) AppOpsManager.class.getMethod("checkOpNoThrow", String.class, int.class, String.class).invoke(ao, "android:mock_location", uid, paket);
+            }
+            return mod == AppOpsManager.MODE_ALLOWED;
+        } catch (Throwable e) { return false; }
     }
 }

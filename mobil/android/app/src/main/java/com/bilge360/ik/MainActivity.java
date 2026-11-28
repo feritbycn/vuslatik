@@ -157,6 +157,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(KonumGuvenliPlugin.class);
+        registerPlugin(AppGuncellemePlugin.class);
         super.onCreate(savedInstanceState);
         kanalOlustur();
         linkOku(getIntent());

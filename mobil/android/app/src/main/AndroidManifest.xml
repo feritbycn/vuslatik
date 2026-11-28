@@ -42,6 +42,14 @@
         </provider>
     </application>
 
+    <!-- Sahte konum uygulaması denetimi için telefondaki başlatıcılı uygulamaların listesi görünür olmalı -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
